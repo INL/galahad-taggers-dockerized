@@ -1,7 +1,7 @@
 services:
     # pie (ports: 810x)
     pie-tdn-1400-1600:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-1400-1600:dev
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-1400-1600:${APP_VERSION}
         build:
             context: pie/TDN-1400-1600
         environment:
@@ -11,7 +11,7 @@ services:
             - 8100:8080
 
     pie-tdn-1600-1900:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-1600-1900:dev
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-1600-1900:${APP_VERSION}
         build:
             context: pie/TDN-1600-1900
         environment:
@@ -21,7 +21,7 @@ services:
             - 8101:8080
 
     pie-tdn-all:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-all:dev
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-all:${APP_VERSION}
         build:
             context: pie/TDN-ALL
         environment:
@@ -31,7 +31,7 @@ services:
             - 8102:8080
     
     pie-tdn-bab:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-bab:dev
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-bab:${APP_VERSION}
         build:
             context: pie/TDN-BAB
         environment:
@@ -41,7 +41,7 @@ services:
             - 8103:8080
 
     pie-tdn-clvn:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-clvn:dev
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-clvn:${APP_VERSION}
         build:
             context: pie/TDN-CLVN
         environment:
@@ -51,7 +51,7 @@ services:
             - 8104:8080
 
     pie-tdn-cour:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-cour:dev
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-cour:${APP_VERSION}
         build:
             context: pie/TDN-COUR
         environment:
@@ -61,7 +61,7 @@ services:
             - 8105:8080
 
     pie-tdn-dbnldq:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-dbnldq:dev
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-dbnldq:${APP_VERSION}
         build:
             context: pie/TDN-DBNLDQ
         environment:
