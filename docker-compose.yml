@@ -1,0 +1,76 @@
+services:
+    # pie (ports: 810x)
+    pie-tdn-1400-1600:
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-1400-1600:dev
+        build:
+            context: pie/TDN-1400-1600
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8100:8080
+
+    pie-tdn-1600-1900:
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-1600-1900:dev
+        build:
+            context: pie/TDN-1600-1900
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8101:8080
+
+    pie-tdn-all:
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-all:dev
+        build:
+            context: pie/TDN-ALL
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8102:8080
+    
+    pie-tdn-bab:
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-bab:dev
+        build:
+            context: pie/TDN-BAB
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8103:8080
+
+    pie-tdn-clvn:
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-clvn:dev
+        build:
+            context: pie/TDN-CLVN
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8104:8080
+
+    pie-tdn-cour:
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-cour:dev
+        build:
+            context: pie/TDN-COUR
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8105:8080
+
+    pie-tdn-dbnldq:
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-dbnldq:dev
+        build:
+            context: pie/TDN-DBNLDQ
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8106:8080
+
+networks:
+    default:
+        name: taggers-network
+        driver: bridge # external applications can attach to this network to access the taggers 
