@@ -1,8 +1,8 @@
 # galahad-taggers-dockerized (1.0.0)
 GaLAHaD Taggers Dockerized provides a unified interface for linguistic annotation taggers to be added to GaLAHaD or to be run on their own. Tagger are containerized and can be accessed with an API in order to tag documents. Documents are queued and sent to a callback server once tagged.
 
-[![Development images to Docker](https://github.com/INL/taggers-dockerized/actions/workflows/dev-to-docker.yml/badge.svg)](https://github.com/INL/taggers-dockerized/actions/workflows/dev-to-docker.yml)
-[![Production images to Docker](https://github.com/INL/taggers-dockerized/actions/workflows/prod-to-docker.yml/badge.svg)](https://github.com/INL/taggers-dockerized/actions/workflows/prod-to-docker.yml)
+[![Development images to Docker](https://github.com/INL/galahad-taggers-dockerized/actions/workflows/dev-to-docker.yml/badge.svg)](https://github.com/INL/galahad-taggers-dockerized/actions/workflows/dev-to-docker.yml)
+[![Production images to Docker](https://github.com/INL/galahad-taggers-dockerized/actions/workflows/prod-to-docker.yml/badge.svg)](https://github.com/INL/galahad-taggers-dockerized/actions/workflows/prod-to-docker.yml)
 
 ### GaLAHaD-related Repositories
 - [galahad](https://github.com/INL/galahad)
@@ -19,7 +19,7 @@ This repository refers to tagger models that have already been trained and are r
 ## Quick start
 Clone this repository and its submodules.
 ```
-git clone --recurse-submodules https://github.com/INL/taggers-dockerized
+git clone --recurse-submodules https://github.com/INL/galahad-taggers-dockerized
 ```
 ### Pull builds from Docker Hub
 Do you have docker and docker compose? Do you have access to the public Docker Hub [instituutnederlandsetaal](https://hub.docker.com/repositories/instituutnederlandsetaal)? Then you can clone this repository and run
@@ -55,10 +55,10 @@ docker compose --env-file .env.dev
 ## Creating your own tagger
 To create your own tagger, use the base tagger as a starting point and overwrite `process.py`. I.e., start your Dockerfile with:
 ```
-FROM instituutnederlandsetaal/taggers-dockerized-pie-base:$tag
+FROM instituutnederlandsetaal/taggers-dockerized-base:$tag
 COPY --link process.py /
 ```
-And fill out the process() and (optionally) init() functions of [base/process.py](https://github.com/INL/taggers-dockerized/blob/development/base/process.py).
+And fill out the process() and (optionally) init() functions of [base/process.py](https://github.com/INL/galahad-taggers-dockerized/blob/release/base/process.py).
 The `in_file` points to a plain text file. Currently, your tagger is expected to produce tsv as output. The output tsv must contain a header with at least the columns 'token', 'lemma', 'pos' defined in any order.
 
 ### Running your own tagger
@@ -85,4 +85,4 @@ The `in_file` points to a plain text file. Currently, your tagger is expected to
 If you specified a devport, you can now find your tagger at `localhost` port devport.
 
 ### Make Galahad aware of your tagger
-All that is left, is to add a yaml metadata file in the [server/data/taggers/](https://github.com/INL/Galahad/tree/development/server/data/taggers) folder of Galahad. See the [Galahad repository](https://github.com/INL/galahad) for more details.
+All that is left, is to add a yaml metadata file in the [server/data/taggers/](https://github.com/INL/galahad/tree/release/server/data/taggers) folder of Galahad. See the [Galahad repository](https://github.com/INL/galahad) for more details.
