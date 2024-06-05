@@ -28,7 +28,7 @@ Do you have docker and docker compose? Do you have access to the public Docker H
 docker compose up
 ```
 
-To run the taggers locally locally. The taggers are avaible on `localhost` with port equal to their devport. (You can find out the devport by looking at the port-forwards defined in `docker-compose.yml`)
+To run the taggers locally locally. The taggers are available on `localhost` with port equal to their devport. (You can find out the devport by looking at the port-forwards defined in `docker-compose.yml`)
 
 Alternatively you can start specific taggers with:
 
