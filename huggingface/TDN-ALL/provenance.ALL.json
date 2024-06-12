@@ -1,0 +1,215 @@
+{
+    "hostname": "svprre10",
+    "date": "2024-06-08",
+    "cwd": "/home/jesse/workspace/huggingface-tagger/tagging",
+    "virtualenv": "/home/jesse/workspace/huggingface-tagger/venv",
+    "git": {
+        "commit": "3bce6c6315cf8377dd1ba6dea8d8e78e299c14b9",
+        "repository": "https://github.com/INL/huggingface-tagger",
+        "branch": "master"
+    },
+    "config": {
+        "epochs": 20,
+        "data_format": "tsv",
+        "fields": {
+            "tokens": 0,
+            "tags": 1,
+            "lemmata": 2
+        },
+        "max_chunk_size": 50,
+        "base_dir": "/vol1/data/tagger/galahad-corpus-data/training-data/",
+        "combination": "ALL",
+        "model_output_path": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+        "base_model": "emanjavacas/GysBERT",
+        "log_path": "Log/",
+        "lemmatizer": {
+            "lem_tokenizer": "../data/lemmatizer/tdn_byt5_model/",
+            "lem_model": "../data/lemmatizer/tdn_byt5_model/",
+            "lexicon_path": "../data/lexicon/lexicon.pickle",
+            "chop_pos_to_main": false
+        },
+        "lemmatizer_other": {
+            "lem_tokenizer": "../data/byt5-lem-hilex-19",
+            "lem_model": "../data/byt5-lem-hilex-19/checkpoint-53500/",
+            "lexicon_path": "../data/lexicon/lexicon.pickle",
+            "chop_pos_to_main": true
+        },
+        "skip_training": false,
+        "name": "ALL",
+        "training_data": [
+            "dbnl-excerpts-15/dbnl-excerpts-15.train.tsv",
+            "dbnl-excerpts-16/dbnl-excerpts-16.train.tsv",
+            "dbnl-excerpts-17/dbnl-excerpts-17.train.tsv",
+            "dbnl-excerpts-18/dbnl-excerpts-18.train.tsv",
+            "dbnl-excerpts-19/dbnl-excerpts-19.train.tsv",
+            "dictionary-quotations-15/dictionary-quotations-15.train.tsv",
+            "dictionary-quotations-16/dictionary-quotations-16.train.tsv",
+            "dictionary-quotations-17/dictionary-quotations-17.train.tsv",
+            "dictionary-quotations-18/dictionary-quotations-18.train.tsv",
+            "dictionary-quotations-19/dictionary-quotations-19.train.tsv",
+            "clvn/clvn.train.tsv",
+            "couranten/couranten.train.tsv",
+            "letters-as-loot/letters-as-loot.train.tsv"
+        ],
+        "dev_data": "dbnl-excerpts-15/dbnl-excerpts-15.dev.tsv",
+        "test_data": [
+            "dbnl-excerpts-15/dbnl-excerpts-15.test.tsv",
+            "dbnl-excerpts-16/dbnl-excerpts-16.test.tsv",
+            "dbnl-excerpts-17/dbnl-excerpts-17.test.tsv",
+            "dbnl-excerpts-18/dbnl-excerpts-18.test.tsv",
+            "dbnl-excerpts-19/dbnl-excerpts-19.test.tsv",
+            "dictionary-quotations-15/dictionary-quotations-15.test.tsv",
+            "dictionary-quotations-16/dictionary-quotations-16.test.tsv",
+            "dictionary-quotations-17/dictionary-quotations-17.test.tsv",
+            "dictionary-quotations-18/dictionary-quotations-18.test.tsv",
+            "dictionary-quotations-19/dictionary-quotations-19.test.tsv",
+            "clvn/clvn.test.tsv",
+            "couranten/couranten.test.tsv",
+            "letters-as-loot/letters-as-loot.test.tsv"
+        ]
+    },
+    "function_params": {
+        "train_path": "None",
+        "dev_path": "None",
+        "config_path": "{'epochs': 20, 'data_format': 'tsv', 'fields': {'tokens': 0, 'tags': 1, 'lemmata': 2}, 'max_chunk_size': 50, 'base_dir': '/vol1/data/tagger/galahad-corpus-data/training-data/', 'combination': 'ALL', 'model_output_path': '../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/', 'base_model': 'emanjavacas/GysBERT', 'log_path': 'Log/', 'lemmatizer': {'lem_tokenizer': '../data/lemmatizer/tdn_byt5_model/', 'lem_model': '../data/lemmatizer/tdn_byt5_model/', 'lexicon_path': '../data/lexicon/lexicon.pickle', 'chop_pos_to_main': False}, 'lemmatizer_other': {'lem_tokenizer': '../data/byt5-lem-hilex-19', 'lem_model': '../data/byt5-lem-hilex-19/checkpoint-53500/', 'lexicon_path': '../data/lexicon/lexicon.pickle', 'chop_pos_to_main': True}, 'skip_training': False, 'name': 'ALL'}",
+        "model_path": "None",
+        "skip_training": "None"
+    },
+    "sys_argv": [
+        "train-galahad-combinations.py",
+        "Config/galahad/template.config.json"
+    ],
+    "dev_and_test_set_results": {
+        "stage_0": {
+            "test_set_results": {
+                "dbnl-excerpts-15": {
+                    "score": 0.9179566563467492,
+                    "coarse_score": 0.9411764705882353,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//dbnl-excerpts-15/dbnl-excerpts-15.test.tsv",
+                    "test_tokens": 646,
+                    "lemmatization": null
+                },
+                "dbnl-excerpts-16": {
+                    "score": 0.9570508231925555,
+                    "coarse_score": 0.9706513958482462,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//dbnl-excerpts-16/dbnl-excerpts-16.test.tsv",
+                    "test_tokens": 1397,
+                    "lemmatization": null
+                },
+                "dbnl-excerpts-17": {
+                    "score": 0.9713656387665198,
+                    "coarse_score": 0.9779735682819384,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//dbnl-excerpts-17/dbnl-excerpts-17.test.tsv",
+                    "test_tokens": 1362,
+                    "lemmatization": null
+                },
+                "dbnl-excerpts-18": {
+                    "score": 0.9715142428785607,
+                    "coarse_score": 0.9790104947526237,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//dbnl-excerpts-18/dbnl-excerpts-18.test.tsv",
+                    "test_tokens": 1334,
+                    "lemmatization": null
+                },
+                "dbnl-excerpts-19": {
+                    "score": 0.9756986634264885,
+                    "coarse_score": 0.9817739975698664,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//dbnl-excerpts-19/dbnl-excerpts-19.test.tsv",
+                    "test_tokens": 1646,
+                    "lemmatization": null
+                },
+                "dictionary-quotations-15": {
+                    "score": 0.9379716547027425,
+                    "coarse_score": 0.9628198048960059,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//dictionary-quotations-15/dictionary-quotations-15.test.tsv",
+                    "test_tokens": 5433,
+                    "lemmatization": null
+                },
+                "dictionary-quotations-16": {
+                    "score": 0.9450713574510454,
+                    "coarse_score": 0.9668104878858281,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//dictionary-quotations-16/dictionary-quotations-16.test.tsv",
+                    "test_tokens": 6026,
+                    "lemmatization": null
+                },
+                "dictionary-quotations-17": {
+                    "score": 0.9614280588446358,
+                    "coarse_score": 0.9738069608898458,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//dictionary-quotations-17/dictionary-quotations-17.test.tsv",
+                    "test_tokens": 5574,
+                    "lemmatization": null
+                },
+                "dictionary-quotations-18": {
+                    "score": 0.9717868338557993,
+                    "coarse_score": 0.9817444219066938,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//dictionary-quotations-18/dictionary-quotations-18.test.tsv",
+                    "test_tokens": 5423,
+                    "lemmatization": null
+                },
+                "dictionary-quotations-19": {
+                    "score": 0.9774286346536845,
+                    "coarse_score": 0.9834034078335915,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//dictionary-quotations-19/dictionary-quotations-19.test.tsv",
+                    "test_tokens": 4519,
+                    "lemmatization": null
+                },
+                "clvn": {
+                    "score": 0.9045643153526971,
+                    "coarse_score": 0.9321010939268201,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//clvn/clvn.test.tsv",
+                    "test_tokens": 2651,
+                    "lemmatization": null
+                },
+                "couranten": {
+                    "score": 0.9543147208121827,
+                    "coarse_score": 0.971718636693256,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//couranten/couranten.test.tsv",
+                    "test_tokens": 2758,
+                    "lemmatization": null
+                },
+                "letters-as-loot": {
+                    "score": 0.9102397926117952,
+                    "coarse_score": 0.9322747893713546,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_ALL/",
+                    "test_data": "/vol1/data/tagger/galahad-corpus-data/training-data//letters-as-loot/letters-as-loot.test.tsv",
+                    "test_tokens": 3086,
+                    "lemmatization": null
+                }
+            },
+            "stage": 0,
+            "per_epoch_dev_set_eval": [
+                0.9182242990654206,
+                0.9205607476635514,
+                0.9322429906542056,
+                0.9252336448598131,
+                0.9314641744548287,
+                0.9314641744548287,
+                0.9291277258566978,
+                0.9384735202492211,
+                0.9345794392523364,
+                0.9330218068535826,
+                0.92601246105919,
+                0.9314641744548287,
+                0.9306853582554517,
+                0.92601246105919,
+                0.9338006230529595,
+                0.9384735202492211,
+                0.9306853582554517,
+                0.9299065420560748,
+                0.9322429906542056,
+                0.9330218068535826
+            ]
+        }
+    }
+}

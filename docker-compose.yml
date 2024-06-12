@@ -70,6 +70,87 @@ services:
         ports:
             - 8106:8080
 
+    # huggingface (port: 811x)
+    hug-tdn-1400-1600:
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-1400-1600:${APP_VERSION}
+        build:
+            context: huggingface/TDN-1400-1600
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8110:8080
+
+    hug-tdn-1600-1900:
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-1600-1900:${APP_VERSION}
+        build:
+            context: huggingface/TDN-1600-1900
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8111:8080
+
+    hug-tdn-all:
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-all:${APP_VERSION}
+        build:
+            context: huggingface/TDN-ALL
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8112:8080
+    
+    hug-tdn-bab:
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-bab:${APP_VERSION}
+        build:
+            context: huggingface/TDN-BAB
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8113:8080
+
+    hug-tdn-clvn:
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-clvn:${APP_VERSION}
+        build:
+            context: huggingface/TDN-CLVN
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8114:8080
+
+    hug-tdn-cour:
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-cour:${APP_VERSION}
+        build:
+            context: huggingface/TDN-COUR
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8115:8080
+
+    hug-tdn-dbnldq:
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-dbnldq:${APP_VERSION}
+        build:
+            context: huggingface/TDN-DBNLDQ
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8116:8080
+
+    hug-tdn-all-enhanced:
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-all-enhanced:${APP_VERSION}
+        build:
+            context: huggingface/TDN-ALL-ENHANCED
+        environment:
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        restart: unless-stopped
+        ports:
+            - 8117:8080
+
 networks:
     default:
         name: taggers-network

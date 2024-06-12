@@ -1,3 +1,6 @@
 [submodule "pie/base/pie"]
 	path = pie/base/pie
 	url = https://github.com/INL/int-pie
+[submodule "huggingface/base/huggingface"]
+	path = huggingface/base/huggingface
+	url = https://github.com/INL/int-huggingface-tagger

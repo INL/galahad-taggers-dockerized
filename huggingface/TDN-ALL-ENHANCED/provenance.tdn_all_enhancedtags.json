@@ -1,0 +1,209 @@
+{
+    "hostname": "svprre10",
+    "date": "2024-06-09",
+    "cwd": "/home/jesse/workspace/huggingface-tagger/tagging",
+    "virtualenv": "/home/jesse/workspace/huggingface-tagger/venv",
+    "git": {
+        "commit": "3bce6c6315cf8377dd1ba6dea8d8e78e299c14b9",
+        "repository": "https://github.com/INL/huggingface-tagger",
+        "branch": "master"
+    },
+    "config_path": "Config/galahad/tdn_all_enhancedtags.config",
+    "config": {
+        "epochs": 20,
+        "data_format": "tsv",
+        "fields": {
+            "tokens": 0,
+            "tags": 1,
+            "lemmata": 2
+        },
+        "max_chunk_size": 50,
+        "base_dir": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags/",
+        "training_data": [
+            "clvn/clvn.train.tsv.gz",
+            "letters-as-loot/letters-as-loot.train.tsv.gz",
+            "couranten/couranten.train.tsv.gz",
+            "dbnl-excerpts-15/dbnl-excerpts-15.train.tsv.gz",
+            "dbnl-excerpts-16/dbnl-excerpts-16.train.tsv.gz",
+            "dbnl-excerpts-17/dbnl-excerpts-17.train.tsv.gz",
+            "dbnl-excerpts-18/dbnl-excerpts-18.train.tsv.gz",
+            "dbnl-excerpts-19/dbnl-excerpts-19.train.tsv.gz",
+            "dictionary-quotations-15/dictionary-quotations-15.train.tsv.gz",
+            "dictionary-quotations-16/dictionary-quotations-16.train.tsv.gz",
+            "dictionary-quotations-17/dictionary-quotations-17.train.tsv.gz",
+            "dictionary-quotations-18/dictionary-quotations-18.train.tsv.gz",
+            "dictionary-quotations-19/dictionary-quotations-19.train.tsv.gz"
+        ],
+        "dev_data": "couranten/couranten.dev.tsv.gz",
+        "test_data": [
+            "clvn/clvn.test.tsv.gz",
+            "letters-as-loot/letters-as-loot.test.tsv.gz",
+            "couranten/couranten.test.tsv.gz",
+            "dbnl-excerpts-15/dbnl-excerpts-15.test.tsv.gz",
+            "dbnl-excerpts-16/dbnl-excerpts-16.test.tsv.gz",
+            "dbnl-excerpts-17/dbnl-excerpts-17.test.tsv.gz",
+            "dbnl-excerpts-18/dbnl-excerpts-18.test.tsv.gz",
+            "dbnl-excerpts-19/dbnl-excerpts-19.test.tsv.gz",
+            "dictionary-quotations-15/dictionary-quotations-15.test.tsv.gz",
+            "dictionary-quotations-16/dictionary-quotations-16.test.tsv.gz",
+            "dictionary-quotations-17/dictionary-quotations-17.test.tsv.gz",
+            "dictionary-quotations-18/dictionary-quotations-18.test.tsv.gz",
+            "dictionary-quotations-19/dictionary-quotations-19.test.tsv.gz"
+        ],
+        "model_output_path": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+        "base_model": "emanjavacas/GysBERT",
+        "log_path": "./Log/galahad-enhanced-tags/",
+        "lemmatizer": {
+            "lem_tokenizer": "../data/lemmatizer/galahad/tdn_byt5_model/",
+            "lem_model": "../data/lemmatizer/tdn_byt5_model/",
+            "lexicon_path": "../data/lexicon/lexicon.pickle",
+            "chop_pos_to_main": false
+        },
+        "skip_training": false,
+        "name": "tdn_all_enhancedtags"
+    },
+    "function_params": {
+        "train_path": "None",
+        "dev_path": "None",
+        "config_path": "Config/galahad/tdn_all_enhancedtags.config",
+        "model_path": "None",
+        "skip_training": "None"
+    },
+    "sys_argv": [
+        "train.py",
+        "Config/galahad/tdn_all_enhancedtags.config"
+    ],
+    "dev_and_test_set_results": {
+        "stage_0": {
+            "test_set_results": {
+                "clvn": {
+                    "score": 0.8623161071293851,
+                    "coarse_score": 0.9049415314975481,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//clvn/clvn.test.tsv.gz",
+                    "test_tokens": 2651,
+                    "lemmatization": null
+                },
+                "letters-as-loot": {
+                    "score": 0.8321451717433571,
+                    "coarse_score": 0.8914452365521711,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//letters-as-loot/letters-as-loot.test.tsv.gz",
+                    "test_tokens": 3086,
+                    "lemmatization": null
+                },
+                "couranten": {
+                    "score": 0.9046410442349528,
+                    "coarse_score": 0.9332849891225525,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//couranten/couranten.test.tsv.gz",
+                    "test_tokens": 2758,
+                    "lemmatization": null
+                },
+                "dbnl-excerpts-15": {
+                    "score": 0.8792569659442724,
+                    "coarse_score": 0.9179566563467492,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//dbnl-excerpts-15/dbnl-excerpts-15.test.tsv.gz",
+                    "test_tokens": 646,
+                    "lemmatization": null
+                },
+                "dbnl-excerpts-16": {
+                    "score": 0.9212598425196851,
+                    "coarse_score": 0.9441660701503222,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//dbnl-excerpts-16/dbnl-excerpts-16.test.tsv.gz",
+                    "test_tokens": 1397,
+                    "lemmatization": null
+                },
+                "dbnl-excerpts-17": {
+                    "score": 0.9096916299559471,
+                    "coarse_score": 0.9243759177679882,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//dbnl-excerpts-17/dbnl-excerpts-17.test.tsv.gz",
+                    "test_tokens": 1362,
+                    "lemmatization": null
+                },
+                "dbnl-excerpts-18": {
+                    "score": 0.9062968515742129,
+                    "coarse_score": 0.9332833583208395,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//dbnl-excerpts-18/dbnl-excerpts-18.test.tsv.gz",
+                    "test_tokens": 1334,
+                    "lemmatization": null
+                },
+                "dbnl-excerpts-19": {
+                    "score": 0.948359659781288,
+                    "coarse_score": 0.965370595382746,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//dbnl-excerpts-19/dbnl-excerpts-19.test.tsv.gz",
+                    "test_tokens": 1646,
+                    "lemmatization": null
+                },
+                "dictionary-quotations-15": {
+                    "score": 0.9144119271120927,
+                    "coarse_score": 0.9444137677158108,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//dictionary-quotations-15/dictionary-quotations-15.test.tsv.gz",
+                    "test_tokens": 5433,
+                    "lemmatization": null
+                },
+                "dictionary-quotations-16": {
+                    "score": 0.9218386989711251,
+                    "coarse_score": 0.950381679389313,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//dictionary-quotations-16/dictionary-quotations-16.test.tsv.gz",
+                    "test_tokens": 6026,
+                    "lemmatization": null
+                },
+                "dictionary-quotations-17": {
+                    "score": 0.9298528884104772,
+                    "coarse_score": 0.9520990312163616,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//dictionary-quotations-17/dictionary-quotations-17.test.tsv.gz",
+                    "test_tokens": 5574,
+                    "lemmatization": null
+                },
+                "dictionary-quotations-18": {
+                    "score": 0.9231052922736492,
+                    "coarse_score": 0.9468928637285635,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//dictionary-quotations-18/dictionary-quotations-18.test.tsv.gz",
+                    "test_tokens": 5423,
+                    "lemmatization": null
+                },
+                "dictionary-quotations-19": {
+                    "score": 0.9486612082319097,
+                    "coarse_score": 0.9637087851294535,
+                    "model_name": "../data/tagging/tagging_models/galahad_models/pos_model_tdn_all_enhanced/",
+                    "test_data": "/media/proj/Corpora/TrainingDataForTools/CobaltExport/2024_2/training-data-2_enhanced_tags//dictionary-quotations-19/dictionary-quotations-19.test.tsv.gz",
+                    "test_tokens": 4519,
+                    "lemmatization": null
+                }
+            },
+            "stage": 0,
+            "per_epoch_dev_set_eval": [
+                0.9335565738456115,
+                0.9428974268593585,
+                0.9481847021501586,
+                0.9478322171307719,
+                0.949947127247092,
+                0.949418399718012,
+                0.9478322171307719,
+                0.9480084596404653,
+                0.9506520972858653,
+                0.951533309834332,
+                0.9532957349312654,
+                0.951004582305252,
+                0.950475854776172,
+                0.9520620373634121,
+                0.9508283397955587,
+                0.9527670074021855,
+                0.9531194924215721,
+                0.9529432499118787,
+                0.9536482199506521,
+                0.9534719774409588
+            ]
+        }
+    }
+}
