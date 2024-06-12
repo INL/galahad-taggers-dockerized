@@ -19,7 +19,6 @@
         {
             "@type": "Person",
             "@id": "http://orcid.org/0009-0006-9941-9582",
-            "type": "Person",
             "email": "vincent.prins@ivdnt.org",
             "familyName": "Prins",
             "givenName": "Vincent"
@@ -39,9 +38,9 @@
         }
     ],
     "maintainer": "http://orcid.org/0009-0006-9941-9582",
-    "codeRepository": "git+https://github.com/INL/taggers-dockerized.git",
+    "codeRepository": "git+https://github.com/INL/galahad-taggers-dockerized.git",
     "description": "GaLAHaD Taggers Dockerized provides a unified interface for linguistic annotation taggers to be added to GaLAHaD or to be run on their own. Tagger are containerized and can be accessed with an API in order to tag documents. Documents are queued and sent to a callback server once tagged.",
-    "downloadUrl": "https://github.com/INL/taggers-dockerized",
+    "downloadUrl": "https://github.com/INL/galahad-taggers-dockerized",
     "license": "http://spdx.org/licenses/Apache-2.0",
     "name": "GaLAHaD Taggers Dockerized",
     "identifier": "galahad-taggers-dockerized",
@@ -63,9 +62,9 @@
         "@id": "https://www.ivdnt.org",
         "url": "https://www.ivdnt.org"
     },
-    "issueTracker": "https://github.com/INL/taggers-dockerized/issues",
-    "readme": "https://github.com/INL/taggers-dockerized/blob/development/readme.md",
-    "releaseNotes": "https://github.com/INL/taggers-dockerized/releases",
+    "issueTracker": "https://github.com/INL/galahad-taggers-dockerized/issues",
+    "readme": "https://github.com/INL/galahad-taggers-dockerized/blob/release/readme.md",
+    "releaseNotes": "https://github.com/INL/galahad-taggers-dockerized/releases",
     "targetProduct": [
         {
             "@type": "WebAPI",

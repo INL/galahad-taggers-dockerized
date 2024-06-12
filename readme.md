@@ -1,4 +1,4 @@
-# galahad-taggers-dockerized (1.0.1)
+# galahad-taggers-dockerized
 GaLAHaD Taggers Dockerized provides a unified interface for linguistic annotation taggers to be added to GaLAHaD or to be run on their own. Tagger are containerized and can be accessed with an API in order to tag documents. Documents are queued and sent to a callback server once tagged.
 
 [![Development images to Docker](https://github.com/INL/galahad-taggers-dockerized/actions/workflows/dev-to-docker.yml/badge.svg)](https://github.com/INL/galahad-taggers-dockerized/actions/workflows/dev-to-docker.yml)
@@ -28,7 +28,7 @@ Do you have docker and docker compose? Do you have access to the public Docker H
 docker compose up
 ```
 
-To run the taggers locally locally. The taggers are avaible on `localhost` with port equal to their devport. (You can find out the devport by looking at the port-forwards defined in `docker-compose.yml`)
+To run the taggers locally locally. The taggers are available on `localhost` with port equal to their devport. (You can find out the devport by looking at the port-forwards defined in `docker-compose.yml`)
 
 Alternatively you can start specific taggers with:
 
