@@ -55,7 +55,7 @@ docker compose --env-file .env.dev
 ## Creating your own tagger
 To create your own tagger, use the base tagger as a starting point and overwrite `process.py`. I.e., start your Dockerfile with:
 ```
-FROM instituutnederlandsetaal/taggers-dockerized-base:$tag
+FROM instituutnederlandsetaal/taggers-dockerized-base:$VERSION
 COPY --link process.py /
 ```
 And fill out the process() and (optionally) init() functions of [base/process.py](https://github.com/INL/galahad-taggers-dockerized/blob/release/base/process.py).

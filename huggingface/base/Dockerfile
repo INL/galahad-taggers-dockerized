@@ -1,5 +1,5 @@
-ARG tag=dev
-FROM instituutnederlandsetaal/taggers-dockerized-base:$tag
+ARG VERSION=dev
+FROM instituutnederlandsetaal/taggers-dockerized-base:$VERSION
 
 COPY requirements.sh requirements.txt nltk-download.py ./
 RUN ./requirements.sh && python3 nltk-download.py

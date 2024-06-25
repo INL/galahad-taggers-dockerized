@@ -22,4 +22,4 @@ jobs:
       - name: Build and push 
         run: ./buildandpushall.sh
         env:
-          VERSION_LABEL: dev
+          VERSION: dev

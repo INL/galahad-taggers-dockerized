@@ -1,7 +1,7 @@
 services:
     # pie (ports: 810x)
     pie-tdn-1400-1600:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-1400-1600:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-1400-1600:${VERSION}
         build:
             context: pie/TDN-1400-1600
         environment:
@@ -11,7 +11,7 @@ services:
             - 8100:8080
 
     pie-tdn-1600-1900:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-1600-1900:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-1600-1900:${VERSION}
         build:
             context: pie/TDN-1600-1900
         environment:
@@ -21,7 +21,7 @@ services:
             - 8101:8080
 
     pie-tdn-all:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-all:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-all:${VERSION}
         build:
             context: pie/TDN-ALL
         environment:
@@ -31,7 +31,7 @@ services:
             - 8102:8080
     
     pie-tdn-bab:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-bab:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-bab:${VERSION}
         build:
             context: pie/TDN-BAB
         environment:
@@ -41,7 +41,7 @@ services:
             - 8103:8080
 
     pie-tdn-clvn:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-clvn:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-clvn:${VERSION}
         build:
             context: pie/TDN-CLVN
         environment:
@@ -51,7 +51,7 @@ services:
             - 8104:8080
 
     pie-tdn-cour:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-cour:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-cour:${VERSION}
         build:
             context: pie/TDN-COUR
         environment:
@@ -61,7 +61,7 @@ services:
             - 8105:8080
 
     pie-tdn-dbnldq:
-        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-dbnldq:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-pie-tdn-dbnldq:${VERSION}
         build:
             context: pie/TDN-DBNLDQ
         environment:
@@ -72,7 +72,7 @@ services:
 
     # huggingface (port: 811x)
     hug-tdn-1400-1600:
-        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-1400-1600:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-1400-1600:${VERSION}
         build:
             context: huggingface/TDN-1400-1600
         environment:
@@ -82,7 +82,7 @@ services:
             - 8110:8080
 
     hug-tdn-1600-1900:
-        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-1600-1900:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-1600-1900:${VERSION}
         build:
             context: huggingface/TDN-1600-1900
         environment:
@@ -92,7 +92,7 @@ services:
             - 8111:8080
 
     hug-tdn-all:
-        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-all:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-all:${VERSION}
         build:
             context: huggingface/TDN-ALL
         environment:
@@ -102,7 +102,7 @@ services:
             - 8112:8080
     
     hug-tdn-bab:
-        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-bab:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-bab:${VERSION}
         build:
             context: huggingface/TDN-BAB
         environment:
@@ -112,7 +112,7 @@ services:
             - 8113:8080
 
     hug-tdn-clvn:
-        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-clvn:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-clvn:${VERSION}
         build:
             context: huggingface/TDN-CLVN
         environment:
@@ -122,7 +122,7 @@ services:
             - 8114:8080
 
     hug-tdn-cour:
-        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-cour:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-cour:${VERSION}
         build:
             context: huggingface/TDN-COUR
         environment:
@@ -132,7 +132,7 @@ services:
             - 8115:8080
 
     hug-tdn-dbnldq:
-        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-dbnldq:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-dbnldq:${VERSION}
         build:
             context: huggingface/TDN-DBNLDQ
         environment:
@@ -142,7 +142,7 @@ services:
             - 8116:8080
 
     hug-tdn-all-enhanced:
-        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-all-enhanced:${APP_VERSION}
+        image: instituutnederlandsetaal/taggers-dockerized-hug-tdn-all-enhanced:${VERSION}
         build:
             context: huggingface/TDN-ALL-ENHANCED
         environment:
