@@ -19,6 +19,7 @@ from multiprocessing.pool import Pool
 from typing import Optional
 import subprocess
 import requests
+import traceback
 
 # Local
 import process
@@ -83,6 +84,7 @@ def process_file(filename: str):
         # Process failed, free up the pid
         ps.delete_status()
         sl.error(f"An exception occurred: {e}")
+        print(traceback.format_exc())
         # copy input file to error folder if it exists
         if os.path.exists(in_path):
             sl.error("Moving input file to error folder")
