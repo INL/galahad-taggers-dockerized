@@ -23,17 +23,16 @@ ENV SPACY_MODEL=${SPACY_MODEL}
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install torch torchvision torchaudio
 RUN python3 -m spacy download ${SPACY_MODEL}
 
 COPY --from=tagger_base timeout.py /
-COPY --from=tagger_base tagger_worker.py /
+COPY --from=tagger_base webservice.py /
 COPY --from=tagger_base statuslogger.py /
 COPY --from=tagger_base shared.py /
 COPY --from=tagger_base start.sh /
 
 COPY --link process.py /
-COPY --link webservice.py /
+COPY --link tagger_worker.py /
 COPY --link tei2trankit.py /
 
 EXPOSE 8080
