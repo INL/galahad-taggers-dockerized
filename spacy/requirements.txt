@@ -1,3 +1,4 @@
+spacy[cuda12x]
 spacy_conll
 tqdm
 bottle==0.12.25
@@ -10,4 +11,3 @@ urllib3==2.2.2
 torch
 torchvision
 torchaudio
-spacy[cuda12x]

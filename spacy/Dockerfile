@@ -35,6 +35,8 @@ COPY --link process.py /
 COPY --link tagger_worker.py /
 COPY --link tei2trankit.py /
 
+RUN mkdir input status output process
+
 EXPOSE 8080
 
 CMD ["./start.sh"]
