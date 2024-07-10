@@ -25,12 +25,42 @@ import json
 import sys
 import logging
 from typing import Any, Optional
+import pathlib
+import time
+import fcntl
 
 STATUS_FOLDER = "status"
 PROCESS_FOLDER = "process"
 
 log_format = "%(levelname)s %(asctime)s - %(message)s"
 logging.basicConfig(stream=sys.stdout, format=log_format, level=logging.INFO)
+
+
+class FileMutex:
+    def __init__(self, file_path, timeout=5):
+        self.file_path = file_path
+        self.file = None
+        self.timeout = timeout
+
+    def acquire(self, mode):
+        start_time = time.time()
+        while True:
+            try:
+                self.file = open(self.file_path, mode, encoding="utf-8")
+                fcntl.flock(self.file, fcntl.LOCK_EX)
+                return
+            except (IOError, OSError):
+                if time.time() - start_time > self.timeout:
+                    raise TimeoutError(
+                        "Timeout occurred while trying to acquire the lock."
+                    )
+                time.sleep(0.1)
+
+    def release(self):
+        if self.file:
+            fcntl.flock(self.file, fcntl.LOCK_UN)
+            self.file.close()
+            self.file = None
 
 
 class StatusLogger:
@@ -94,20 +124,29 @@ class StatusLogger:
                 "error": False,
                 "finished": False,
             }
-        with open(self.status_path, encoding="utf-8") as f:
-            try:
-                return json.load(f)
-            except:
-                logging.error(f"Error decoding status file { self.status_path }")
-                self.init("Restarting due to invalid JSON status file.")
-                return self.get_status()
+        try:
+            mutex = FileMutex(self.status_path)
+            mutex.acquire("r")
+            return json.load(mutex.file)
+        except Exception as e:
+            return {
+                "message": f"Could not read status file. {e}",
+                "pending": False,
+                "busy": False,
+                "error": False,
+                "finished": False,
+            }
+        finally:
+            mutex.release()
 
     def delete_status(self) -> None:
         """
         Deletes the file storage associated with this status, as well as the process status if present.
         """
-        if self.exists():
-            os.remove(self.status_path)
+        try:
+            pathlib.Path(self.status_path).unlink(missing_ok=True)
+        except:
+            raise
         # We might have to remove its process status as well.
         process_status = ProcessStatus(self.filename)
         if process_status.exists():
@@ -117,9 +156,14 @@ class StatusLogger:
         """
         Logs the current status, replacing the previous one.
         """
-        f = open(self.status_path, "w", encoding="utf-8")
-        json.dump(status, f)
-        f.close()
+        try:
+            mutex = FileMutex(self.status_path)
+            mutex.acquire("w")
+            json.dump(status, mutex.file)
+        except:
+            raise
+        finally:
+            mutex.release()
 
     # Logging functions
 
@@ -222,6 +266,8 @@ class ProcessStatus(StatusLogger):
         Called when a processed is killed, or naturally ends.
         Removes ourselves, signifying the tagger is no longer busy.
         """
-        if self.exists():
-            os.remove(self.status_path)
+        try:
+            pathlib.Path(self.status_path).unlink(missing_ok=True)
+        except:
+            raise
         # Note that calling the super would cause recursion.
