@@ -29,6 +29,7 @@ from statuslogger import StatusLogger, ProcessStatus
 from process import PROCESSING_SPEED
 
 CALLBACK_SERVER: str = os.getenv("CALLBACK_SERVER") or ""
+NUM_THREADS = 6
 
 
 def run_pending_tasks() -> None:
@@ -39,7 +40,9 @@ def run_pending_tasks() -> None:
     global pool
 
     # One task at a time.
-    if StatusLogger.busy_task_exists():
+    tasks_in_queue = pool._taskqueue.qsize()
+    if tasks_in_queue > 0:
+        print(f"{tasks_in_queue} task(s) in queue.")
         return
 
     # Start new task when not busy
@@ -53,11 +56,10 @@ def run_pending_tasks() -> None:
                 # Extra None check for typing
                 if (not is_pool_running(pool)) or pool is None:
                     # Spawn pool if not running
-                    pool = mp.Pool(processes=1, initializer=process.init)
+                    pool = mp.Pool(processes=NUM_THREADS, initializer=process.init)
                 # Perform task at running pool
+                print(f"Launching new task")
                 pool.apply_async(process_file, args=(sl.filename,))
-                # Only start one task at a time, so return.
-                return
 
 
 def process_file(filename: str):
@@ -86,7 +88,7 @@ def process_file(filename: str):
         sl.error(f"An exception occurred: {e}")
         print(traceback.format_exc())
         # copy input file to error folder if it exists
-        if os.path.exists(in_path):
+        if os.path.isfile(in_path):
             sl.error("Moving input file to error folder")
             os.rename(in_path, error_path)
         if CALLBACK_SERVER != "":
@@ -105,9 +107,21 @@ def tag(
     # 300s = 5min fixed time
     # plus
     # bytes * speed variable time
-    in_bytes_size = int(
-        subprocess.check_output(["du", "-sb", in_path]).split()[0].decode("utf-8")
-    )
+    in_bytes_size = None
+    while in_bytes_size is None:
+        if os.path.isfile(in_path):
+            try:
+                in_bytes_size = int(
+                    subprocess.check_output(["du", "-sb", in_path])
+                    .split()[0]
+                    .decode("utf-8")
+                )
+            except Exception as e:
+                print(f"Error getting file size: {e}")
+                time.sleep(1)
+        else:
+            raise FileNotFoundError(f"File {in_path} not found")
+
     TIMEOUT = 300 + in_bytes_size + PROCESSING_SPEED
     sl.busy("Will process with a timeout after " + str(TIMEOUT) + " seconds")
 
@@ -195,8 +209,8 @@ pool = None
 # It is ugly, but it is also used here:
 # https://pypi.org/project/schedule/
 if __name__ == "__main__":
-    mp.set_start_method('spawn', force=True)
-    pool = mp.Pool(processes=1, initializer=process.init)
+    mp.set_start_method("spawn", force=True)
+    pool = mp.Pool(processes=NUM_THREADS, initializer=process.init)
     while True:
         run_pending_tasks()
-        time.sleep(1)
+        time.sleep(0.05)
