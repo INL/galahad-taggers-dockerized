@@ -60,13 +60,14 @@ def process_all(in_file, out_file) -> None:
 
             sent_id = 1
             for result in results:
-                f_out.write(f"# sent_id = {sent_id}\n")
-                f_out.write(f"# text = {result.text}\n")
-                for token in result:
-                    f_out.write("\t".join(to_conllu(token)))
-                    f_out.write("\n")  # Tokens on newline
-                f_out.write("\n\n")  # sentence separator
-                sent_id += 1
+                for sent in result.sents:
+                    f_out.write(f"# sent_id = {sent_id}\n")
+                    f_out.write(f"# text = {sent}\n")
+                    for token in sent:
+                        f_out.write("\t".join(to_conllu(token)))
+                        f_out.write("\n")  # Tokens on newline
+                    f_out.write("\n")  # sentence separator
+                    sent_id += 1
 
 
 def process_by_line(in_file, out_file) -> None:
@@ -99,15 +100,17 @@ def parse_txt(f_in) -> list[str]:
 
 # https://github.com/BramVanroy/spacy_conll/blob/b6225cfca7023ebf7a1488c48b1ded0bf3a07264/src/spacy_conll/formatter.py#L188
 def to_conllu(token):
+    sent_start = token.sent[0].i
+
     if token.dep_.lower().strip() == "root":
         head_idx = 0
     else:
-        head_idx = token.head.i + 1 - token.sent[0].i
+        head_idx = token.head.i + 1 - sent_start
 
     token._.conll_misc_field = "_" if token.whitespace_ else "SpaceAfter=No"
 
     return (
-        str(token.i + 1),
+        str(token.i - sent_start + 1),
         token.text,
         token.lemma_ if token.lemma_ else "_",
         token.pos_ if token.pos_ else "_",
