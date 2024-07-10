@@ -5,6 +5,7 @@ services:
         restart: unless-stopped
         environment:
             - USE_GPU=1
+            - NUM_WORKERS=6
         ports:
             - 8120:8080
         deploy:

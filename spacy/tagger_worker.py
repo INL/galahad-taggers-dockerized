@@ -29,7 +29,7 @@ from statuslogger import StatusLogger, ProcessStatus
 from process import PROCESSING_SPEED
 
 CALLBACK_SERVER: str = os.getenv("CALLBACK_SERVER") or ""
-NUM_THREADS = 6
+NUM_WORKERS = int(os.getenv("NUM_WORKERS") or 1)
 
 
 def run_pending_tasks() -> None:
@@ -56,7 +56,7 @@ def run_pending_tasks() -> None:
                 # Extra None check for typing
                 if (not is_pool_running(pool)) or pool is None:
                     # Spawn pool if not running
-                    pool = mp.Pool(processes=NUM_THREADS, initializer=process.init)
+                    pool = mp.Pool(processes=NUM_WORKERS, initializer=process.init)
                 # Perform task at running pool
                 print(f"Launching new task")
                 pool.apply_async(process_file, args=(sl.filename,))
@@ -210,7 +210,7 @@ pool = None
 # https://pypi.org/project/schedule/
 if __name__ == "__main__":
     mp.set_start_method("spawn", force=True)
-    pool = mp.Pool(processes=NUM_THREADS, initializer=process.init)
+    pool = mp.Pool(processes=NUM_WORKERS, initializer=process.init)
     while True:
         run_pending_tasks()
         time.sleep(0.05)
