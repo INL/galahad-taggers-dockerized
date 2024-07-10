@@ -43,14 +43,14 @@ def process(in_file: str, out_file: str) -> None:
 
 
 def process_all(in_file, out_file) -> None:
-    with open(out_file, "x", encoding="utf-8") as f_out:
+    with open(out_file, "w+", encoding="utf-8") as f_out:
         with open(in_file, "r", encoding="utf-8") as f_in:
             is_xml = is_file_xml(in_file)
             # only non empty lines if not xml
             doc = (
                 [Doc(nlp.vocab, i) for i in tei2trankit(in_file)]
                 if is_xml
-                else [f_in.read()]
+                else parse_txt(f_in)
             )  # need to be in a list
 
             if os.getenv("USE_GPU"):
@@ -64,12 +64,13 @@ def process_all(in_file, out_file) -> None:
                 f_out.write(f"# text = {result.text}\n")
                 for token in result:
                     f_out.write("\t".join(to_conllu(token)))
-                f_out.write("\n")  # sentence separator
+                    f_out.write("\n")  # Tokens on newline
+                f_out.write("\n\n")  # sentence separator
                 sent_id += 1
 
 
 def process_by_line(in_file, out_file) -> None:
-    with open(out_file, "x", encoding="utf-8") as f_out:
+    with open(out_file, "w+", encoding="utf-8") as f_out:
         with open(in_file, "r", encoding="utf-8") as f_in:
 
             is_xml = is_file_xml(in_file)
