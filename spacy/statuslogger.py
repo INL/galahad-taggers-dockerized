@@ -39,28 +39,40 @@ logging.basicConfig(stream=sys.stdout, format=log_format, level=logging.INFO)
 class FileMutex:
     def __init__(self, file_path, timeout=5):
         self.file_path = file_path
+        self.lock_path = file_path + ".lock"
+        self.lock = None
         self.file = None
         self.timeout = timeout
 
     def acquire(self, mode):
         start_time = time.time()
+        # Try to acquire the lock, if it fails, wait for a bit and try again.
         while True:
             try:
-                self.file = open(self.file_path, mode, encoding="utf-8")
-                fcntl.flock(self.file, fcntl.LOCK_EX)
-                return
+                self.lock = open(self.lock_path, "a+", encoding="utf-8")
+                fcntl.flock(self.lock, fcntl.LOCK_EX)
+                break
             except (IOError, OSError):
                 if time.time() - start_time > self.timeout:
                     raise TimeoutError(
                         "Timeout occurred while trying to acquire the lock."
                     )
                 time.sleep(0.1)
+        # Open the file after acquiring the lock.
+        self.file = open(self.file_path, mode, encoding="utf-8")
 
     def release(self):
         if self.file:
-            fcntl.flock(self.file, fcntl.LOCK_UN)
             self.file.close()
             self.file = None
+        if self.lock:
+            fcntl.flock(self.lock, fcntl.LOCK_UN)
+            self.lock.close()
+            self.lock = None
+            try:
+                pathlib.Path(self.lock_path).unlink(missing_ok=True)
+            except:
+                pass  # Well, we tried.
 
 
 class StatusLogger:
