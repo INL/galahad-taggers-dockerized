@@ -5,6 +5,7 @@ from tei2trankit import tei2trankit
 from spacy.tokens import Doc
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
+import time
 
 """
 Initialize the tagger if needed and process input files by calling the specific tagger implementation 
@@ -26,13 +27,17 @@ def init() -> None:
     """
     Any initialization the tagger may need before processing.
     """
+    start_time = time.time()
+
     if os.getenv("USE_GPU"):
         spacy.require_gpu()
+
     global nlp
     nlp = spacy.load(os.environ["SPACY_MODEL"], disable=["ner"])
-    nlp.add_pipe("conll_formatter", last=True)
-    print(f"Loaded pipeline: {nlp.pipe_names}")
-    print(nlp.pipeline)
+    nlp.add_pipe("conll_formatter", last=True, config={"disable_pandas": True})
+
+    duration = time.time() - start_time
+    print(f"Loaded pipeline in {duration:.2f}s: {nlp.pipe_names}")
 
 
 def process(in_file: str, out_file: str) -> None:

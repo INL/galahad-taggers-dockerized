@@ -37,21 +37,34 @@ logging.basicConfig(stream=sys.stdout, format=log_format, level=logging.INFO)
 
 
 class FileMutex:
-    def __init__(self, file_path, timeout=5):
-        self.file_path = file_path
-        self.lock_path = file_path + ".lock"
-        self.lock = None
-        self.file = None
-        self.timeout = timeout
+    """
+    A mutex for file access. First acquires a lock on a lock file named original_file.lock, creating it if needed.
+    Then opens the original file. When the mutex is released, the lock file is removed in an attempt to clean up.
+    """
 
-    def acquire(self, mode):
+    def __init__(self, file_path: str, timeout: int = 5):
+        """
+        Create a new mutex for the file_path. timeout is the maximum time to wait for the lock.
+        """
+        self.timeout = timeout
+        # Paths
+        self.file_path = file_path
+        self._lock_path = file_path + ".lock"
+        # Files
+        self._lock = None
+        self.file = None
+
+    def acquire(self, file_mode: str) -> None:
+        """
+        Acquire the lock and open the file in file_mode, once the lock is acquired. Sets self.file.
+        """
         start_time = time.time()
         # Try to acquire the lock, if it fails, wait for a bit and try again.
         while True:
             try:
-                self.lock = open(self.lock_path, "a+", encoding="utf-8")
-                fcntl.flock(self.lock, fcntl.LOCK_EX)
-                break
+                self._lock = open(self._lock_path, "a+", encoding="utf-8")
+                fcntl.flock(self._lock, fcntl.LOCK_EX)
+                break  # Acquired!
             except (IOError, OSError):
                 if time.time() - start_time > self.timeout:
                     raise TimeoutError(
@@ -59,18 +72,22 @@ class FileMutex:
                     )
                 time.sleep(0.1)
         # Open the file after acquiring the lock.
-        self.file = open(self.file_path, mode, encoding="utf-8")
+        self.file = open(self.file_path, file_mode, encoding="utf-8")
 
-    def release(self):
+    def release(self) -> None:
+        """
+        Release the lock and close the file. Try to remove the lock file.
+        """
         if self.file:
             self.file.close()
             self.file = None
-        if self.lock:
-            fcntl.flock(self.lock, fcntl.LOCK_UN)
-            self.lock.close()
-            self.lock = None
+
+        if self._lock:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
+            self._lock.close()
+            self._lock = None
             try:
-                pathlib.Path(self.lock_path).unlink(missing_ok=True)
+                pathlib.Path(self._lock_path).unlink(missing_ok=True)
             except:
                 pass  # Well, we tried.
 
@@ -155,14 +172,20 @@ class StatusLogger:
         """
         Deletes the file storage associated with this status, as well as the process status if present.
         """
-        try:
-            pathlib.Path(self.status_path).unlink(missing_ok=True)
-        except:
-            raise
+        self.delete_status_file()
         # We might have to remove its process status as well.
         process_status = ProcessStatus(self.filename)
         if process_status.exists():
             process_status.kill()
+
+    def delete_status_file(self) -> None:
+        """
+        Delete only the status file. Used by ProcessStatus to avoid recursion.
+        """
+        try:
+            pathlib.Path(self.status_path).unlink(missing_ok=True)
+        except:
+            raise
 
     def _dump_status(self, status: dict[str, Any]) -> None:
         """
@@ -237,6 +260,9 @@ class ProcessStatus(StatusLogger):
         )
 
     def __init__(self, filename: str, pid: Optional[int] = None) -> None:
+        """
+        When no pid is given, we try to find the pid from the file. Otherwise, we create a new status file.
+        """
         self.filename = filename
         self.status_path = os.path.join(PROCESS_FOLDER, filename)
         if pid is not None:
@@ -245,7 +271,7 @@ class ProcessStatus(StatusLogger):
             pid = self.get_pid()
             if pid is not None:
                 try:
-                    os.kill(pid, 0)
+                    os.kill(pid, 0)  # Check if alive.
                 except:
                     # No process with this pid exists.
                     # delete ourselves, otherwise the tagger thinks we are busy.
@@ -256,17 +282,15 @@ class ProcessStatus(StatusLogger):
 
     def get_pid(self) -> Optional[int]:
         """
-        Process ID of the current thread (i.e. mp.pool).
+        Process ID of the current thread.
         """
         if not self.exists():
             return None
-        with open(self.status_path, encoding="utf-8") as f:
-            status = json.load(f)
-            return status["pid"]
+        return self.get_status()["pid"]
 
     def kill(self) -> None:
         """
-        Kill the thread (i.e. mp.pool) that is currently tagging the file.
+        Kill the thread that is currently tagging the file.
         """
         pid = self.get_pid()
         if pid is not None:
@@ -278,8 +302,5 @@ class ProcessStatus(StatusLogger):
         Called when a processed is killed, or naturally ends.
         Removes ourselves, signifying the tagger is no longer busy.
         """
-        try:
-            pathlib.Path(self.status_path).unlink(missing_ok=True)
-        except:
-            raise
+        self.delete_status_file()
         # Note that calling the super would cause recursion.

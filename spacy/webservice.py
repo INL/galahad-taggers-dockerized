@@ -89,7 +89,6 @@ def post_input():
         file_dest = os.path.join(UPLOAD_FOLDER, id)
         file.save(file_dest)
         file_exists = os.path.isfile(file_dest)
-        print(f"file_exists={file_exists}")
         if not file_exists:
             return HTTPResponse("File could not be saved. Please try again.", 500)
         # register the file
@@ -161,7 +160,6 @@ def delete_file(id: str):
     # remove the file
     if os.path.isfile(path):
         os.remove(path)
-        print(path)
         return HTTPResponse("File " + id + " deleted", 200)
 
 

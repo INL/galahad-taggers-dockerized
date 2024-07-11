@@ -20,6 +20,7 @@ from typing import Optional
 import subprocess
 import requests
 import traceback
+import pathlib
 
 # Local
 import process
@@ -42,7 +43,6 @@ def run_pending_tasks() -> None:
     # One task at a time.
     tasks_in_queue = pool._taskqueue.qsize()
     if tasks_in_queue > 0:
-        print(f"{tasks_in_queue} task(s) in queue.")
         return
 
     # Start new task when not busy
@@ -58,7 +58,6 @@ def run_pending_tasks() -> None:
                     # Spawn pool if not running
                     pool = mp.Pool(processes=NUM_WORKERS, initializer=process.init)
                 # Perform task at running pool
-                print(f"Launching new task")
                 pool.apply_async(process_file, args=(sl.filename,))
 
 
@@ -101,8 +100,8 @@ def tag(
 ) -> None:
     """
     Attempt to tag the file by the tagger with a timeout.
-    Send the result to the server, whether sucessful or not.
-    Also appropiately logs the status.
+    Send the result to the server, whether successful or not.
+    Also appropriately logs the status.
     """
     # 300s = 5min fixed time
     # plus
@@ -122,11 +121,11 @@ def tag(
         else:
             raise FileNotFoundError(f"File {in_path} not found")
 
-    TIMEOUT = 300 + in_bytes_size + PROCESSING_SPEED
-    sl.busy("Will process with a timeout after " + str(TIMEOUT) + " seconds")
+    time_out = 300 + in_bytes_size + PROCESSING_SPEED
+    sl.busy("Will process with a timeout after " + str(time_out) + " seconds")
 
-    # Runs the respective tagger software.
-    @timeout(TIMEOUT, os.strerror(errno.ETIME))
+    # Runs the respective tagger software synchronously.
+    @timeout(time_out, os.strerror(errno.ETIME))
     def doTagging():
         process.process(in_path, out_path)
 
@@ -135,11 +134,7 @@ def tag(
     # Done processing
     ps.delete_status()  # Frees up the tagger
     sl.finished("Removing input file")
-    # "try", because the task might have been cancelled and deleted in the meantime.
-    try:
-        os.remove(in_path)
-    except:
-        pass
+    pathlib.Path(in_path).unlink(missing_ok=True)
 
     sl.finished(
         "Finished processing %s, result has size %d"
@@ -206,11 +201,13 @@ def is_pool_running(pool: Optional[Pool]) -> bool:
 # https://stackoverflow.com/questions/41385708/multiprocessing-example-giving-attributeerror#comment101561695_42383397
 pool = None
 
-# It is ugly, but it is also used here:
-# https://pypi.org/project/schedule/
 if __name__ == "__main__":
+    # Can't use fork with the gpu.
     mp.set_start_method("spawn", force=True)
     pool = mp.Pool(processes=NUM_WORKERS, initializer=process.init)
+
+    # It is ugly, but it is also used here:
+    # https://pypi.org/project/schedule/
     while True:
         run_pending_tasks()
         time.sleep(0.05)
