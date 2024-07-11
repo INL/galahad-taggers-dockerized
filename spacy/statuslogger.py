@@ -284,9 +284,10 @@ class ProcessStatus(StatusLogger):
         """
         Process ID of the current thread.
         """
-        if not self.exists():
+        try:
+            return self.get_status()["pid"]
+        except:
             return None
-        return self.get_status()["pid"]
 
     def kill(self) -> None:
         """
@@ -294,6 +295,7 @@ class ProcessStatus(StatusLogger):
         """
         pid = self.get_pid()
         if pid is not None:
+            print(f"Killing process {pid}")
             os.kill(pid, signal.SIGKILL)
         self.delete_status()
 
