@@ -45,8 +45,8 @@ def process(in_file: str, out_file: str) -> None:
 
 def process_by_line(in_file, out_file) -> None:
 
-    with open(out_file, "x") as f_out:
-        with open(in_file, "r") as f_in:
+    with open(out_file, "x", encoding="utf-8") as f_out:
+        with open(in_file, "r", encoding="utf-8") as f_in:
 
             is_xml = is_file_xml(in_file)
             nlp = xml_nlp if is_xml else txt_nlp
@@ -61,8 +61,8 @@ def process_by_line(in_file, out_file) -> None:
 
 def process_all(in_file, out_file) -> None:
     
-    with open(out_file, "x") as f_out:
-        with open(in_file, "r") as f_in:
+    with open(out_file, "x", encoding="utf-8") as f_out:
+        with open(in_file, "r", encoding="utf-8") as f_in:
 
             is_xml = is_file_xml(in_file)
             nlp = xml_nlp if is_xml else txt_nlp
