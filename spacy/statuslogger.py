@@ -150,7 +150,7 @@ class StatusLogger:
                 "message": "File not on server",
                 "pending": False,
                 "busy": False,
-                "error": False,
+                "error": True,
                 "finished": False,
             }
         try:
@@ -162,7 +162,7 @@ class StatusLogger:
                 "message": f"Could not read status file. {e}",
                 "pending": False,
                 "busy": False,
-                "error": False,
+                "error": True,
                 "finished": False,
             }
         finally:
