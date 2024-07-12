@@ -25,12 +25,71 @@ import json
 import sys
 import logging
 from typing import Any, Optional
+import pathlib
+import time
+import fcntl
 
 STATUS_FOLDER = "status"
 PROCESS_FOLDER = "process"
 
 log_format = "%(levelname)s %(asctime)s - %(message)s"
 logging.basicConfig(stream=sys.stdout, format=log_format, level=logging.INFO)
+
+
+class FileMutex:
+    """
+    A mutex for file access. First acquires a lock on a lock file named original_file.lock, creating it if needed.
+    Then opens the original file. When the mutex is released, the lock file is removed in an attempt to clean up.
+    """
+
+    def __init__(self, file_path: str, timeout: int = 5):
+        """
+        Create a new mutex for the file_path. timeout is the maximum time to wait for the lock.
+        """
+        self.timeout = timeout
+        # Paths
+        self.file_path = file_path
+        self._lock_path = file_path + ".lock"
+        # Files
+        self._lock = None
+        self.file = None
+
+    def acquire(self, file_mode: str) -> None:
+        """
+        Acquire the lock and open the file in file_mode, once the lock is acquired. Sets self.file.
+        """
+        start_time = time.time()
+        # Try to acquire the lock, if it fails, wait for a bit and try again.
+        while True:
+            try:
+                self._lock = open(self._lock_path, "a+", encoding="utf-8")
+                fcntl.flock(self._lock, fcntl.LOCK_EX)
+                break  # Acquired!
+            except (IOError, OSError):
+                if time.time() - start_time > self.timeout:
+                    raise TimeoutError(
+                        "Timeout occurred while trying to acquire the lock."
+                    )
+                time.sleep(0.1)
+        # Open the file after acquiring the lock.
+        self.file = open(self.file_path, file_mode, encoding="utf-8")
+
+    def release(self) -> None:
+        """
+        Release the lock and close the file. Try to remove the lock file.
+        """
+        if self.file:
+            self.file.close()
+            self.file = None
+
+        if self._lock:
+            fcntl.flock(self._lock, fcntl.LOCK_UN)
+            self._lock.close()
+            self._lock = None
+            try:
+                pathlib.Path(self._lock_path).unlink(missing_ok=True)
+            except:
+                pass  # Well, we tried.
 
 
 class StatusLogger:
@@ -91,40 +150,55 @@ class StatusLogger:
                 "message": "File not on server",
                 "pending": False,
                 "busy": False,
-                "error": False,
+                "error": True,
                 "finished": False,
             }
-        with open(self.status_path, encoding="utf-8") as f:
-            try:
-                return json.load(f)
-            except:
-                logging.error(f"Error decoding status file { self.status_path }")
-                return {
-                    "message": "Error decoding status file",
-                    "pending": False,
-                    "busy": False,
-                    "error": True,
-                    "finished": False,
-                }
+        try:
+            mutex = FileMutex(self.status_path)
+            mutex.acquire("r")
+            return json.load(mutex.file)
+        except Exception as e:
+            return {
+                "message": f"Could not read status file. {e}",
+                "pending": False,
+                "busy": False,
+                "error": True,
+                "finished": False,
+            }
+        finally:
+            mutex.release()
 
     def delete_status(self) -> None:
         """
         Deletes the file storage associated with this status, as well as the process status if present.
         """
-        if self.exists():
-            os.remove(self.status_path)
+        self.delete_status_file()
         # We might have to remove its process status as well.
         process_status = ProcessStatus(self.filename)
         if process_status.exists():
             process_status.kill()
 
+    def delete_status_file(self) -> None:
+        """
+        Delete only the status file. Used by ProcessStatus to avoid recursion.
+        """
+        try:
+            pathlib.Path(self.status_path).unlink(missing_ok=True)
+        except:
+            raise
+
     def _dump_status(self, status: dict[str, Any]) -> None:
         """
         Logs the current status, replacing the previous one.
         """
-        f = open(self.status_path, "w", encoding="utf-8")
-        json.dump(status, f)
-        f.close()
+        try:
+            mutex = FileMutex(self.status_path)
+            mutex.acquire("w")
+            json.dump(status, mutex.file)
+        except:
+            raise
+        finally:
+            mutex.release()
 
     # Logging functions
 
@@ -186,6 +260,9 @@ class ProcessStatus(StatusLogger):
         )
 
     def __init__(self, filename: str, pid: Optional[int] = None) -> None:
+        """
+        When no pid is given, we try to find the pid from the file. Otherwise, we create a new status file.
+        """
         self.filename = filename
         self.status_path = os.path.join(PROCESS_FOLDER, filename)
         if pid is not None:
@@ -194,29 +271,31 @@ class ProcessStatus(StatusLogger):
             pid = self.get_pid()
             if pid is not None:
                 try:
-                    os.kill(pid, 0)
+                    os.kill(pid, 0)  # Check if alive.
                 except:
                     # No process with this pid exists.
                     # delete ourselves, otherwise the tagger thinks we are busy.
                     self.delete_status()
-                    StatusLogger(self.filename).init("File processing ended. Retry later.")
+                    StatusLogger(self.filename).init(
+                        "File processing ended. Retry later."
+                    )
 
     def get_pid(self) -> Optional[int]:
         """
-        Process ID of the current thread (i.e. mp.pool).
+        Process ID of the current thread.
         """
-        if not self.exists():
+        try:
+            return self.get_status()["pid"]
+        except:
             return None
-        with open(self.status_path, encoding="utf-8") as f:
-            status = json.load(f)
-            return status["pid"]
 
     def kill(self) -> None:
         """
-        Kill the thread (i.e. mp.pool) that is currently tagging the file.
+        Kill the thread that is currently tagging the file.
         """
         pid = self.get_pid()
         if pid is not None:
+            print(f"Killing process {pid}")
             os.kill(pid, signal.SIGKILL)
         self.delete_status()
 
@@ -225,6 +304,5 @@ class ProcessStatus(StatusLogger):
         Called when a processed is killed, or naturally ends.
         Removes ourselves, signifying the tagger is no longer busy.
         """
-        if self.exists():
-            os.remove(self.status_path)
+        self.delete_status_file()
         # Note that calling the super would cause recursion.

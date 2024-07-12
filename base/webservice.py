@@ -86,7 +86,11 @@ def post_input():
         return HTTPResponse("No selected file", 400)
     if file:
         id = str(uuid.uuid4())
-        file.save(os.path.join(UPLOAD_FOLDER, id))
+        file_dest = os.path.join(UPLOAD_FOLDER, id)
+        file.save(file_dest)
+        file_exists = os.path.isfile(file_dest)
+        if not file_exists:
+            return HTTPResponse("File could not be saved. Please try again.", 500)
         # register the file
         sl = StatusLogger(id)
         sl.init("File arrived")
@@ -156,7 +160,6 @@ def delete_file(id: str):
     # remove the file
     if os.path.isfile(path):
         os.remove(path)
-        print(path)
         return HTTPResponse("File " + id + " deleted", 200)
 
 

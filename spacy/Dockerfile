@@ -23,12 +23,12 @@ RUN python3 -m spacy download ${SPACY_MODEL}
 COPY --from=tagger_base timeout.py /
 COPY --from=tagger_base shared.py /
 COPY --from=tagger_base start.sh /
+COPY --from=tagger_base tagger_worker.py /
+COPY --from=tagger_base statuslogger.py /
+COPY --from=tagger_base webservice.py /
 
 COPY --link process.py /
-COPY --link tagger_worker.py /
 COPY --link tei2trankit.py /
-COPY --link statuslogger.py /
-COPY --link webservice.py /
 
 RUN mkdir input status output process
 
