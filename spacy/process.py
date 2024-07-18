@@ -33,7 +33,7 @@ def init() -> None:
         spacy.require_gpu()
 
     global nlp
-    nlp = spacy.load(os.environ["SPACY_MODEL"], disable=["ner"])
+    nlp = spacy.load(os.environ["SPACY_MODEL"])
     nlp.add_pipe("conll_formatter", last=True, config={"disable_pandas": True})
 
     duration = time.time() - start_time
@@ -112,7 +112,15 @@ def to_conllu(token):
     else:
         head_idx = token.head.i + 1 - sent_start
 
-    token._.conll_misc_field = "_" if token.whitespace_ else "SpaceAfter=No"
+    miscs = {}
+    if token.whitespace_:
+        miscs["SpaceAfter"] = "No"
+    if token.ent_type_:
+        miscs["NamedEntity"] = token.ent_iob_ + "-" + token.ent_type_
+
+    token._.conll_misc_field = (
+        "_" if not miscs else "|".join(f"{k}={v}" for k, v in miscs.items())
+    )
 
     return (
         str(token.i - sent_start + 1),
