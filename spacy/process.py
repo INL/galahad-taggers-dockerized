@@ -21,6 +21,10 @@ OUTPUT_EXTENSION = ".conllu"
 PROCESSING_SPEED = 370  # todo: measure this!
 
 nlp = None
+docs_processed = 0
+last_idle_time = None
+total_idle_duration = 0
+total_busy_duration = 0
 
 
 def init() -> None:
@@ -44,7 +48,37 @@ def process(in_file: str, out_file: str) -> None:
     """
     Process the file at path "in_file" and write the result to path "out_file".
     """
+    pid = os.getpid()
+
+    # Idle time
+    global last_idle_time
+    global total_idle_duration
+    now = time.time()
+    if last_idle_time is not None:
+        idle_duration = now - last_idle_time
+        total_idle_duration += idle_duration
+        print(
+            f"Thread {pid} was idle for {idle_duration:.3f}s (total: {total_idle_duration:.3f}s)"
+        )
+    last_idle_time = now
+
+    start_time = now
     process_all(in_file, out_file)
+    busy_duration = time.time() - start_time
+    global total_busy_duration
+    total_busy_duration += busy_duration
+    print(
+        f"Thread {pid} processed {in_file} in {busy_duration:.3f}s (total: {total_busy_duration:.3f}s)"
+    )
+
+    # Efficiency
+    percentage_busy = total_busy_duration / (total_busy_duration + total_idle_duration)
+    print(f"Thread {pid} was busy {percentage_busy:.2%} of the time")
+
+    # Docs processed
+    global docs_processed
+    docs_processed += 1
+    print(f"Thread {pid} has processed {docs_processed} document(s)")
 
 
 def process_all(in_file, out_file) -> None:
