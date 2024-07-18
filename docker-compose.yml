@@ -10,22 +10,29 @@ services:
             - 8120:8080
         deploy:
             resources:
+                limits:
+                    memory: 24G
                 reservations:
                     devices:
                         - driver: nvidia
                           count: all
                           capabilities: [ gpu ]
-    spacy-cpu:
-        image: instituutnederlandsetaal/taggers-dockerized-spacy:${VERSION}
-        restart: unless-stopped
-        ports:
-            - 8120:8080
 
     stanza:
         image: instituutnederlandsetaal/taggers-dockerized-stanza:${VERSION}
         restart: unless-stopped
         ports:
             - 8121:8080
+        deploy:
+            resources:
+                limits:
+                    memory: 24G
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          count: all
+                          capabilities: [ gpu ]
+
 
 networks:
     default:
