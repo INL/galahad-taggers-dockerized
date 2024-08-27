@@ -6,6 +6,7 @@ services:
         environment:
             - USE_GPU=1
             - NUM_WORKERS=6
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
         ports:
             - 8120:8080
         deploy:
@@ -18,21 +19,23 @@ services:
                           count: all
                           capabilities: [ gpu ]
 
+    spacy-cpu:
+        image: instituutnederlandsetaal/taggers-dockerized-spacy:${VERSION}
+        restart: unless-stopped
+        environment:
+            - NUM_WORKERS=1
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        ports:
+            - 8120:8080
+
     stanza:
         image: instituutnederlandsetaal/taggers-dockerized-stanza:${VERSION}
         restart: unless-stopped
+        environment:
+            - NUM_WORKERS=1
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
         ports:
             - 8121:8080
-        deploy:
-            resources:
-                limits:
-                    memory: 24G
-                reservations:
-                    devices:
-                        - driver: nvidia
-                          count: all
-                          capabilities: [ gpu ]
-
 
 networks:
     default:

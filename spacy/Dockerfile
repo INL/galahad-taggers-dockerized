@@ -1,5 +1,5 @@
-ARG tag=latest
-FROM instituutnederlandsetaal/taggers-dockerized-base:$tag as tagger_base
+ARG VERSION
+FROM instituutnederlandsetaal/taggers-dockerized-base:$VERSION as tagger_base
 
 FROM nvidia/cuda:12.5.0-runtime-ubuntu22.04
 
