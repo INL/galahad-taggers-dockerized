@@ -92,10 +92,7 @@ def process_all(in_file, out_file) -> None:
                 else parse_txt(f_in)
             )  # need to be in a list
 
-            if os.getenv("USE_GPU"):
-                results = nlp.pipe(doc)
-            else:
-                results = nlp.pipe(doc, n_process=2, batch_size=20)
+            results = nlp.pipe(doc)
 
             sent_id = 1
             for result in results:
