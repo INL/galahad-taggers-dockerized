@@ -147,7 +147,7 @@ def to_conllu(token):
         head_idx = token.head.i + 1 - sent_start
 
     miscs = {}
-    if token.whitespace_:
+    if not token.whitespace_:
         miscs["SpaceAfter"] = "No"
     if token.ent_type_:
         miscs["NamedEntity"] = token.ent_iob_ + "-" + token.ent_type_
