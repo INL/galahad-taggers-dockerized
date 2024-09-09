@@ -44,7 +44,7 @@ def get_token_literals(element):
     words = get_tokens(element)
     tokens = list(map( lambda w : "".join(w.itertext()), words))
     # itertext() generates empty strings for self-closing-tags like <w pos="PUNT"/>
-    return [t for t in tokens if not t] # '' is falsy
+    return [t for t in tokens if t] # '' is falsy
 
 def get_tree(filename):
     parser = ET.XMLParser(encoding="utf-8")
