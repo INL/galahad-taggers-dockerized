@@ -69,15 +69,7 @@ def tei2trankit(filename):
     for text in texts:
         for sentence in get_sentences(text):
             literals = get_token_literals(sentence)
-            if len(literals) > MAXIMUM_SENTENCE_SIZE:
-                # sentence is too long, skip it
-                # note that there is a matching check for MAXIMUM_SENTENCE_SIZE in trankit2tei
-                # required for alignment.
-                # I would rather have a placeholder,
-                # but trankit does not allow processing empty sentences
-                pass
-            else:
-                ret.append(literals)
+            ret.append(literals)
 
     if len(ret) == 0:
         raise TEIConversionException("TEI document contains no sentences of processable size")
