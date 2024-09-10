@@ -88,7 +88,6 @@ def process_file(filename: str):
         print(traceback.format_exc())
         # copy input file to error folder if it exists
         if os.path.isfile(in_path):
-            sl.error("Moving input file to error folder")
             os.rename(in_path, error_path)
         if CALLBACK_SERVER != "":
             sl.error("Sending error to callback server")
