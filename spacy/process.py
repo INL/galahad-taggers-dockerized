@@ -6,6 +6,7 @@ from spacy.tokens import Doc
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
 import time
+import re
 
 """
 Initialize the tagger if needed and process input files by calling the specific tagger implementation 
@@ -131,7 +132,11 @@ def is_file_xml(in_file: str) -> bool:
 
 
 def parse_txt(f_in) -> list[str]:
-    return [line.strip() for line in f_in if not line.isspace() and line]
+    # uniform whitespace
+    regex = re.compile(r"\s+")
+    return [
+        regex.sub(" ", line).strip() for line in f_in if not line.isspace() and line
+    ]
 
 
 # https://github.com/BramVanroy/spacy_conll/blob/b6225cfca7023ebf7a1488c48b1ded0bf3a07264/src/spacy_conll/formatter.py#L188

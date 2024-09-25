@@ -52,6 +52,9 @@ and use it instead of the default .env file like
 docker compose --env-file .env.dev
 ```
 
+### Without a GaLAHaD endpoint
+These taggers can still be used without a GaLAHaD endpoint, in the form of a jobs API. See http://localhost:PORT for the tagger API. Simply don't define a callback server in the .env, or remove it from the docker compose environment variables.
+
 ## Creating your own tagger
 To create your own tagger, use the base tagger as a starting point and overwrite `process.py`. I.e., start your Dockerfile with:
 ```
