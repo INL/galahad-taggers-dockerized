@@ -177,8 +177,9 @@ def send_error_to_callback_server(filename: str, out_path: str, message: str) ->
     Send the error to the callback server and keep or delete the file based on the server response.
     """
     url = CALLBACK_SERVER + "/error"
-    payload = {"file_id": filename, "message": message}
-    r = requests.post(url, data=payload)
+    payload = {"file_id": filename}
+    json_data = {"file_id": filename, "message": message}
+    r = requests.post(url, json=json_data, params=payload)
     keep_or_delete_file(r, out_path)
 
 
