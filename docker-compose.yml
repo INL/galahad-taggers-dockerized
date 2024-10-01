@@ -37,6 +37,15 @@ services:
         ports:
             - 8121:8080
 
+    flair:
+        image: instituutnederlandsetaal/taggers-dockerized-flair:${VERSION}
+        restart: unless-stopped
+        environment:
+            - NUM_WORKERS=1
+            - CALLBACK_SERVER=${CALLBACK_SERVER}
+        ports:
+            - 8122:8080
+
 networks:
     default:
         name: taggers-network
