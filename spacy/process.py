@@ -27,6 +27,14 @@ last_idle_time = None
 total_idle_duration = 0
 total_busy_duration = 0
 
+# https://github.com/explosion/spaCy/issues/3169#issuecomment-455183085
+@Language.component('prevent-sbd')
+def prevent_sentence_boundary_detection(doc):
+    for token in doc:
+        # This will entirely disable spaCy's sentence detection
+        token.is_sent_start = False
+    return doc
+
 
 def init() -> None:
     """
@@ -39,6 +47,7 @@ def init() -> None:
 
     global nlp
     nlp = spacy.load(os.environ["SPACY_MODEL"])
+    nlp.add_pipe(factory_name='prevent-sbd', before='parser')
     nlp.add_pipe("conll_formatter", last=True, config={"disable_pandas": True})
 
     duration = time.time() - start_time
