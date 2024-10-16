@@ -1,4 +1,5 @@
 import spacy
+from spacy.language import Language
 import os
 from spacy_conll import init_parser
 from tei2trankit import tei2trankit
