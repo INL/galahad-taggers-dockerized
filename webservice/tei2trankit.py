@@ -111,7 +111,7 @@ def trankit2tei(conllu_path, tei_path):
 
     for text in texts:
         for sentence in get_sentences(text):
-            tokens = get_tokens(sentence)
+            tokens: list[ET.Element] = get_tokens(sentence)
 
             linkgroup = ET.Element("linkGrp")
             linkgroup.set("type", "UD-SYN")
@@ -127,7 +127,25 @@ def trankit2tei(conllu_path, tei_path):
             trankit_words = trankit_words_generator()
 
             for token in tokens:
-                trankit_word = trankit_words.__next__()
+                # Handle empty tokens
+                token_text: str = "".join(token.itertext())
+                if token_text == "":
+                    print(f"Warning: Empty token in {tei_path}", file=sys.stderr)
+                    if "lemma" in token.attrib:
+                        del token.attrib["lemma"]
+                    if "type" in token.attrib:
+                        del token.attrib["type"]
+                    continue
+
+                # Handle mismatched sentence lengths
+                try:
+                    trankit_word = trankit_words.__next__()
+                except StopIteration:
+                    print(
+                        f"Warning: Trankit sentence is shorter than TEI sentence in {tei_path}",
+                        file=sys.stderr,
+                    )
+                    continue  # keep the rest of the sentence as is
 
                 ###### lemma & pos ######
                 if trankit_word["lemma"]:
