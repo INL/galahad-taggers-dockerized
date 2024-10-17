@@ -85,12 +85,6 @@ def convert_files_in_directory_tree(tei_dir, conllu_dir, out_dir):
 
 
 if __name__ == "__main__":
-    file = "29f1570c-b9f9-11ea-8488-12ca11c50da0_AK.000001.xml"
-    # tei.tei2trankit("input/0008c4d4-4bce-11ed-9a67-9f5af262b205_AA.000001.xml")
-
-    # os.makedirs("merged", exist_ok=True)
-    convert_single_file(f"test-in/{file}", f"test-out/{file}.conllu", f"merged/{file}")
-
     # Check if the number of arguments is correct
     if len(sys.argv) != 4:
         print("Usage: python convert-conllu-to-tei.py <TEI_DIR> <CONLLU_DIR> <OUT_DIR>")

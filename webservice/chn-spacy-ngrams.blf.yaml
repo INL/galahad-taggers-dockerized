@@ -1,0 +1,656 @@
+# For displaying in user interface (optional)
+displayName: Corpus Hedendaags Nederlands - intern #intern!
+
+# For describing input format in user interface (optional)
+description: CHN TEI (P4)
+
+# (Optional, informational)
+# content, metadata or mixed?
+# (not used by BlackLab, purely informational for the frontend application)
+type: content
+
+fileType: xml
+
+fileTypeOptions:
+  # Don't try to resolve named entity references that VTD-XML can't deal with;
+  # This uses DOM parsing and may be a problem with very large documents (tens/hundreds of MBs)
+  resolveNamedEntityReferences: false
+
+# What element starts a new document?
+# (the only absolute XPath; the rest is relative)
+documentPath: //TEI.2
+
+# Annotated, CQL-searchable fields (also called "complex fields").
+# We usually have just one, named "contents".
+annotatedFields:
+
+  contents:
+
+    # How to display the field in the interface (optional)
+    displayName: Contents
+
+    # How to describe the field in the interface (optional)
+    description: Contents of the documents.
+
+    # What element (relative to document) contains this field's contents?
+    # (if omitted, entire document is used)
+    containerPath: text
+
+    # What are our word tags? (relative to container)
+    wordPath: .//w     # (body geldt niet voor OpenSonar, maar ter illustratie)
+
+    # Punctuation between word tags (relative to container)
+    punctPath: .//text()[not(ancestor::w)]   # = "all text nodes (under containerPath) not inside a <w/> element"
+
+    # What annotation can each word have? How do we index them?
+    # (annotations are also called "(word) properties" in BlackLab)
+    # (valuePaths relative to word path)
+    # NOTE: forEachPath is NOT allowed for annotations, because we need to know all annotations before indexing,
+    #       and with forEachPath you could run in to an unknown new annotation mid-way through.
+    annotations:
+    - name: word
+      valuePath: .
+      displayName: Word
+      description: The original word form from the document
+      sensitivity: sensitive_insensitive
+
+    - name: word_ng2
+      valuePath: concat(preceding-sibling::w[1], '_', .)
+      displayName: Bigram
+      forwardIndex: false
+      sensitivity: insensitive
+
+    - name: word_ng3
+      valuePath: concat(preceding-sibling::w[2], '_',  preceding-sibling::w[1], '_', .)
+      displayName: Trigram
+      forwardIndex: false
+      sensitivity: insensitive
+
+    - name: word_ng4
+      valuePath: concat(preceding-sibling::w[3], '_',  preceding-sibling::w[2], '_',  preceding-sibling::w[1], '_', .)
+      displayName: Tetragram
+      forwardIndex: false
+      sensitivity: insensitive
+
+    - name: lemma
+      valuePath: "@lemma"
+      displayName: Lemma
+      sensitivity: sensitive_insensitive
+
+    - name: lemma_ng2
+      valuePath: concat(preceding-sibling::w[1]/@lemma, '_', @lemma)
+      displayName: Bigram
+      forwardIndex: false
+      sensitivity: insensitive
+
+    - name: lemma_ng3
+      valuePath: concat(preceding-sibling::w[2]/@lemma, '_',  preceding-sibling::w[1]/@lemma, '_', @lemma)
+      displayName: Trigram
+      forwardIndex: false
+      sensitivity: insensitive
+
+    - name: lemma_ng4
+      valuePath: concat(preceding-sibling::w[3]/@lemma, '_',  preceding-sibling::w[2]/@lemma, '_',  preceding-sibling::w[1]/@lemma, '_', @lemma)
+      displayName: Tetragram
+      forwardIndex: false
+      sensitivity: insensitive
+
+    - name: pos_full
+      displayName: Part of Speech + features
+      valuePath: "@type"
+      uiType: select
+
+    - name: pos
+      displayName: Part of Speech
+      valuePath: "@pos"
+      uiType: select
+      multipleValues: true
+      allowDuplicateValues : false
+      subannotations:
+      
+      - name: abbr
+        displayName: Abbreviation
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "Abbr="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+      
+      - name: case
+        displayName: Case
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "Case="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+
+      - name: definite
+        displayName: Definiteness
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "Definite="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+
+      - name: degree
+        displayName: Degree
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "Degree="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+      
+      - name: gender
+        displayName: Gender
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "Gender="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+
+      - name: number
+        displayName: Number
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "Number="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+
+      - name: person
+        displayName: Person
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "Person="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+
+      - name: poss
+        displayName: Possessive
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "Poss="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+
+      - name: prontype
+        displayName: Pronoun type
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "PronType="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+
+      - name: reflex
+        displayName: Reflexive
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "Reflex="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+
+      - name: tense
+        displayName: Tense
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "Tense="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+        
+      - name: verbform
+        displayName: Verb form
+        valuePath: "@msd"
+        uiType: select
+        multipleValues: true
+        allowDuplicateValues : false
+        process:
+          - action: split
+            separator: "VerbForm="
+            keep: 1
+          - action: split
+            separator: "\\|"
+            keep: 0
+
+    # XML tags within the content we'd like to index
+    # (relative to container)
+    inlineTags:
+    - path: .//s   # Sentence
+    - path: .//p   # Paragraph
+    - path: .//head   # (Sub)headings
+
+metadata:
+  containerPath: .//listBibl[@id='inlMetadata']
+  fields:
+  - forEachPath: bibl/interpGrp
+    namePath: "@type"           # interpGrp/@type
+    valuePath: "interp/@value"  # interp/@value (TEI P4)
+
+  - name: titleLevel1
+    displayName: Title article etc.
+    process: 
+    - action: strip # make sure we don't index a space or something silly, or default substitution in "title" won't work
+
+  - name: titleLevel2
+    displayName: Title book, journal, magazine etc.
+    process: 
+    - action: strip # make sure we don't index a space or something silly, or default substitution in "title" won't work
+
+  - name: title
+    displayName: All
+    value: ""
+    process:
+    - action: default
+      field: titleLevel1
+    - action: default
+      field: titleLevel2
+
+  - name: titleCombined
+    displayName: Title (combined)
+    value: ""
+    process:
+    - action: default
+      field: titleLevel1
+    - action: append
+      field: titleLevel2
+
+  - name: gradeBasilex
+    displayName: Grade
+
+  - name: ipr
+    displayName: IPR
+    mapValues: 
+      Online: online
+
+  - name: pubYear_from
+    displayName: Publication year
+    uiType: range
+
+  - name: languageVariant
+    displayName: Language
+    displayValues:
+      AN: "Dutch (Netherlands Antilles)"
+      SN: "Dutch (Surinam)"
+      BN: "Dutch (Belgian)"
+      NN: "Dutch (Dutch)"
+      BN/NN: "Dutch (Dutch/Belgian)"
+      MN: "Dutch (Moroccan)"
+
+  - name: levelBasilex
+    displayName: Level
+
+  - name: maintypeBasilex
+    displayName: Main type
+
+  - name: newspaperSection
+    displayName: Newspaper section
+
+  - name: properties
+    displayName: Article type
+
+  - name: sectionColumn
+    displayName: Column
+
+  - name: settingLocation
+    displayName: Setting location
+
+  - name: settingOrganization
+    displayName: Setting organization
+    
+  - name: settingPerson
+    displayName: Setting person
+
+  - name: subtypeBasilex
+    displayName: Subtype
+
+  - name: targetAudience
+    displayName: Target audience EL Newspapers
+    displayValues: 
+      functionally_illiterate_people: "Functionally Illiterate People"
+
+  - name: authorLevel1
+    displayName: Author article
+    process: 
+    - action: strip # make sure we don't index a space or something silly, or default substitution in "title" won't work
+
+  - name: authorLevel2
+    displayName: Author\
+    process: 
+    - action: strip # make sure we don't index a space or something silly, or default substitution in "title" won't work
+
+  - name: author
+    displayName: Author
+    value: ""
+    process:
+    - action: default
+      field: authorLevel1
+    - action: default
+      field: authorLevel2
+
+  - name: authorCombined
+    displayName: Author
+    value: ""
+    process:
+    - action: default
+      field: authorLevel1
+    - action: append
+      field: authorLevel2
+
+  - name: typeBasilex
+    displayName: Type
+
+  - name: witnessYear_from
+    displayName: Year from
+    type: numeric
+  - name: witnessYear_to
+    displayName: Year to
+    type: numeric
+
+  - name: witnessMonth_from
+    displayName: Month from
+    type: numeric
+  - name: witnessMonth_to
+    displayName: Month to
+    type: numeric
+
+  - name: witnessDay_from
+    displayName: Day from
+    type: numeric
+  - name: witnessDay_to
+    displayName: Day to
+    type: numeric
+
+  - name: witnessDate_from
+    displayName: Date from
+    type: numeric
+    valuePath: "''"
+    process: 
+    - action: concatDate
+      yearField: witnessYear_from
+      monthField: witnessMonth_from
+      dayField: witnessDay_from
+      autofill: start
+  - name: witnessDate_to
+    displayName: Date to
+    type: numeric
+    valuePath: "''"
+    process: 
+    - action: concatDate
+      yearField: witnessYear_to
+      monthField: witnessMonth_to
+      dayField: witnessDay_to
+      autofill: end
+
+  - name: pubDate_from
+    displayName: Publication date from
+    type: numeric
+    valuePath: "''"
+    process: 
+    - action: concatDate
+      yearField: pubYear_from
+      monthField: pubMonth_from
+      dayField: pubDay_from
+      autofill: start
+  - name: pubDate_to
+    displayName: Publication date to
+    type: numeric
+    valuePath: "''"
+    process: 
+    - action: concatDate
+      yearField: pubYear_to
+      monthField: pubMonth_to
+      dayField: pubDay_to
+      autofill: end
+
+  # Medium is special, it contains multiple values sometimes, especially for the misc and periodical sections
+  # <interpGrp type="medium">
+  #     <interp value="misc"/>
+  #     <interp value="web snippet"/>
+  # </interpGrp>
+  # We want to map these to a single value: "misc.: web snippet"
+  # We do this by first joining two values using a pipe "|"
+  # Then removing the pipe if it's at the end (action strip) (when there was only one value)
+  # Finally mapping the joined value to the proper setting.
+  # We can't use advanced xpath (2.0, 3.0) so this is a bit of a kludge
+  - name: medium
+    displayName: Medium
+    valuePath: "concat(bibl/interpGrp[@type='medium']/interp[1]/@value, '|', bibl/interpGrp[@type='medium']/interp[2]/@value)"  # interp/@value (TEI P4)
+    process:
+    - action: strip
+      chars: "|"
+    mapValues: 
+      "Newspaper": "newspaper"
+      "misc|ephemera": "misc.: ephemera"
+      "misc|other": "misc.: other"
+      "misc|teletext": "misc.: teletext"
+      "misc|web snippet": "misc.: web snippet"
+      "misc|website": "misc.: website"
+      "periodical|local": "periodical: local"
+      "periodical|magazine": "periodical: magazine"
+
+  # Special field for grouping on dates, as the _to and _from fields may not be equal, we combine them into one value
+  - name: grouping_year
+    valuePath: concat(./bibl/interpGrp[@type='witnessYear_from']/interp/@value, '-', ./bibl/interpGrp[@type='witnessYear_to']/interp/@value)
+    displayName: Year
+  - name: grouping_month
+    valuePath: concat(./bibl/interpGrp[@type='witnessMonth_from']/interp/@value, '-', ./bibl/interpGrp[@type='witnessMonth_to']/interp/@value)
+    displayName: Month
+  - name: grouping_day
+    valuePath: concat(./bibl/interpGrp[@type='witnessDay_from']/interp/@value, '-', ./bibl/interpGrp[@type='witnessDay_to']/interp/@value)
+    displayName: Day
+
+  # special fields for the newspapers section:
+  - name: newspapers_titleLevel2 # only level2, level1 is/should already be null in all non-newspaper sections
+    displayName: "Title book, journal, magazine etc."
+    valuePath: "./bibl[interpGrp[@type='medium']/interp/@value = 'newspaper']/interpGrp[@type='titleLevel2']/interp/@value"
+  
+  - name: newspapers_authorLevel1
+    displayName: Author article
+    valuePath: "./bibl[interpGrp[@type='medium']/interp/@value = 'newspaper']/interpGrp[@type='authorLevel1']/interp/@value"
+
+  - name: newspapers_topic
+    displayName: Topic
+    valuePath: "./bibl[interpGrp[@type='medium']/interp/@value = 'newspaper']/interpGrp[@type='topic']/interp/@value"
+
+  - name: newspapers_languageVariant
+    displayName: Language
+    valuePath: "./bibl[interpGrp[@type='medium']/interp/@value = 'newspaper']/interpGrp[@type='languageVariant']/interp/@value"
+    displayValues:
+      AN: "Dutch (Netherlands Antilles)"
+      SN: "Dutch (Surinam)"
+      BN: "Dutch (Belgian)"
+      NN: "Dutch (Dutch)"
+      BN/NN: "Dutch (Dutch/Belgian)"
+      MN: "Dutch (Moroccan)"
+
+  # special fields for the Easy Language section:
+  - name: easyLanguage_titleLevel1
+    displayName: Title article etc.
+    valuePath: ./bibl[interpGrp[@type='corpusProvenance']/interp[@value = 'BasiLex' or @value= 'WAI-NOT' or @value = 'Wablieft']]/interpGrp[@type = 'titleLevel1']/interp/@value
+
+  - name: easyLanguage_titleLevel2
+    displayName: Title book, journal, magazine etc.
+    valuePath: ./bibl[interpGrp[@type='corpusProvenance']/interp[@value = 'BasiLex' or @value= 'WAI-NOT' or @value = 'Wablieft']]/interpGrp[@type = 'titleLevel2']/interp/@value
+  
+  - name: easyLanguage_title
+    displayName: All
+    process: 
+    - action: default
+      field: easyLanguage_titleLevel1
+    - action: default
+      field: easyLanguage_titleLevel2
+
+  - name: easyLanguage_authorCombined
+    displayName: Author
+    valuePath: "(./bibl[interpGrp[@type='corpusProvenance']/interp[@value = 'BasiLex' or @value= 'WAI-NOT' or @value = 'Wablieft']]/interpGrp[@type = 'authorLevel1' or @type = 'authorLevel2']/interp[@value != '']/@value)[1]"
+
+  - name: easyLanguage_languageVariant
+    displayName: Author
+    valuePath: "./bibl[interpGrp[@type='corpusProvenance']/interp[@value = 'BasiLex' or @value= 'WAI-NOT' or @value = 'Wablieft']]/interpGrp[@type = 'languageVariant']/interp/@value"
+  
+  # special fields for the ANW sections
+  - name: anw_titleLevel2
+    displayName: All
+    valuePath: "./bibl[interpGrp[@type='corpusProvenance']/interp[@value = 'anw-plus' or @value= 'anw.CLT' or @value = 'anw.Domeinen' or @value = 'ant.Kranten' or @value = 'anw.Neologismen']]/interpGrp[@type = 'titleLevel2']/interp/@value"
+
+  - name: anw_authorLevel2
+    displayName: Author
+    valuePath: "./bibl[interpGrp[@type='corpusProvenance']/interp[@value = 'anw-plus' or @value= 'anw.CLT' or @value = 'anw.Domeinen' or @value = 'ant.Kranten' or @value = 'anw.Neologismen']]/interpGrp[@type = 'authorLevel2']/interp/@value"
+    uiType: combobox
+
+  - name: anw_topic
+    displayName: Topic
+    valuePath: "./bibl[interpGrp[@type='corpusProvenance']/interp[@value = 'anw-plus' or @value= 'anw.CLT' or @value = 'anw.Domeinen' or @value = 'ant.Kranten' or @value = 'anw.Neologismen']]/interpGrp[@type = 'topic']/interp/@value"
+
+
+# Stuff to put in indexmetadata.yaml
+corpusConfig:
+
+  displayName: Corpus Hedendaags Nederlands
+
+  description: An in-development monitor corpus for contemporary Dutch.
+
+  # May end user fetch contents of whole documents? [false]
+  contentViewable: true
+
+  # Fields with special significance
+  specialFields:
+    pidField: pid
+    titleField: title
+    authorField: author
+    dateField: witnessYear_from
+
+  # How to group fields into tabs
+  metadataFieldGroups:
+  - name: Common
+    fields: 
+    - title
+    - titleLevel2
+    - titleLevel1
+    - authorCombined
+    - witnessDay_from
+    - witnessDay_to
+    - witnessMonth_from
+    - witnessMonth_to
+    - witnessYear_from
+    - witnessYear_to
+    - medium
+    - languageVariant
+    - ipr
+    - corpusProvenance
+
+  - name: Newspapers
+    fields: 
+    - authorLevel1
+    - articleClass
+    - articleSeries
+    - sectionColumn
+    - newspaperSection
+    - properties
+    - keywords
+    - subject
+    - topic
+    - settingLocation
+    - settingOrganization
+    - settingPerson
+
+  - name: Easy Language
+    fields: 
+    - levelBasilex
+    - gradeBasilex
+    - maintypeBasilex
+    - typeBasilex
+    - subtypeBasilex
+    - targetAudience
+
+  - name: ANW-Corpus
+    fields: 
+    - authorLevel2
+    - topic
+    - lemma
+
+  annotationGroups:
+    contents:
+    - name: Main
+      annotations:
+      - word
+      - lemma
+      - pos
+      - pos_full
+    - name: PoS features
+      annotations:
+        - pos_abbr
+        - pos_case
+        - pos_definite
+        - pos_gender
+        - pos_number
+        - pos_person
+        - pos_poss
+        - pos_prontype
+        - pos_reflex
+        - pos_tense
+        - pos_verbform
