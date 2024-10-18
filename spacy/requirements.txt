@@ -1,5 +1,6 @@
 spacy[cuda12x]
 spacy_conll
+conllu
 tqdm
 bottle==0.12.25
 bottle-log==1.0.0

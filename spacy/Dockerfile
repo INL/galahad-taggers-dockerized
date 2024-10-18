@@ -28,7 +28,7 @@ COPY --from=tagger_base statuslogger.py /
 COPY --from=tagger_base webservice.py /
 
 COPY --link process.py /
-COPY --link tei2trankit.py /
+COPY --link conllu_tei_helper.py /
 
 RUN mkdir input status output process
 

@@ -2,12 +2,13 @@ import spacy
 from spacy.language import Language
 import os
 from spacy_conll import init_parser
-from tei2trankit import tei2trankit
+from conllu_tei_helper import tei_to_spacy_docs, conllu_to_tei
 from spacy.tokens import Doc
 import xml.etree.ElementTree as ET
 from tqdm import tqdm
 import time
 import re
+import tempfile
 
 """
 Initialize the tagger if needed and process input files by calling the specific tagger implementation 
@@ -15,7 +16,7 @@ and ensuring the output is written to the expected file.
 """
 
 # The extension of output files produced by the tagger.
-OUTPUT_EXTENSION = ".conllu"
+OUTPUT_EXTENSION = ".xml"
 
 # Expected throughput in chars per sec.
 # The timeout and expected job duration are based on this,
@@ -28,8 +29,9 @@ last_idle_time = None
 total_idle_duration = 0
 total_busy_duration = 0
 
+
 # https://github.com/explosion/spaCy/issues/3169#issuecomment-455183085
-@Language.component('prevent-sbd')
+@Language.component("prevent-sbd")
 def prevent_sentence_boundary_detection(doc):
     for token in doc:
         # This will entirely disable spaCy's sentence detection
@@ -48,7 +50,7 @@ def init() -> None:
 
     global nlp
     nlp = spacy.load(os.environ["SPACY_MODEL"])
-    nlp.add_pipe(factory_name='prevent-sbd', before='parser')
+    nlp.add_pipe(factory_name="prevent-sbd", before="parser")
     nlp.add_pipe("conll_formatter", last=True, config={"disable_pandas": True})
 
     duration = time.time() - start_time
@@ -62,6 +64,17 @@ def process(in_file: str, out_file: str) -> None:
     pid = os.getpid()
 
     # Idle time
+    start_time = calculate_idle_duration(pid)
+
+    # temporary file to store conllu
+    with tempfile.NamedTemporaryFile() as temp_file:
+        process_all(in_file, temp_file.name)
+        conllu_to_tei(temp_file.name, out_file)
+
+    calculate_statistics(in_file, pid, start_time)
+
+
+def calculate_idle_duration(pid):
     global last_idle_time
     global total_idle_duration
     now = time.time()
@@ -72,9 +85,10 @@ def process(in_file: str, out_file: str) -> None:
             f"Thread {pid} was idle for {idle_duration:.3f}s (total: {total_idle_duration:.3f}s)"
         )
     last_idle_time = now
+    return now
 
-    start_time = now
-    process_all(in_file, out_file)
+
+def calculate_statistics(in_file, pid, start_time):
     busy_duration = time.time() - start_time
     global total_busy_duration
     total_busy_duration += busy_duration
@@ -83,6 +97,7 @@ def process(in_file: str, out_file: str) -> None:
     )
 
     # Efficiency
+    global total_idle_duration
     percentage_busy = total_busy_duration / (total_busy_duration + total_idle_duration)
     print(f"Thread {pid} was busy {percentage_busy:.2%} of the time")
 
@@ -98,7 +113,7 @@ def process_all(in_file, out_file) -> None:
             is_xml = is_file_xml(in_file)
             # only non empty lines if not xml
             doc = (
-                [Doc(nlp.vocab, i) for i in tei2trankit(in_file)]
+                [Doc(nlp.vocab, i) for i in tei_to_spacy_docs(in_file)]
                 if is_xml
                 else parse_txt(f_in)
             )  # need to be in a list
@@ -115,22 +130,6 @@ def process_all(in_file, out_file) -> None:
                         f_out.write("\n")  # Tokens on newline
                     f_out.write("\n")  # sentence separator
                     sent_id += 1
-
-
-def process_by_line(in_file, out_file) -> None:
-    with open(out_file, "w+", encoding="utf-8") as f_out:
-        with open(in_file, "r", encoding="utf-8") as f_in:
-
-            is_xml = is_file_xml(in_file)
-            # only non empty lines if not xml
-            doc = tei2trankit(in_file) if is_xml else parse_txt(f_in)
-
-            for line in tqdm(doc):
-                if is_xml:
-                    line = Doc(nlp.vocab, line)
-                result = nlp(line)
-                f_out.write(result._.conll_str)
-                f_out.write("\n")  # sentence separator
 
 
 def is_file_xml(in_file: str) -> bool:

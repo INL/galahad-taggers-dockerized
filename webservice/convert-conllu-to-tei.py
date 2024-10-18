@@ -16,7 +16,7 @@ import requests
 import requests.exceptions
 
 # Local
-import tei2trankit as tei
+import conllu_tei_helper as tei
 
 
 def directory_tree_file_count(dir: str):
@@ -34,7 +34,7 @@ def convert_single_file(tei_path, conllu_path, out_path):
         print(f"conllu path does not exist {conllu_path}", file=sys.stderr)
         return
     try:
-        xmlstring = tei.trankit2tei(conllu_path, tei_path)
+        xmlstring = tei.merge_tei_with_conllu_layer(conllu_path, tei_path)
         f_out = open(out_path, "wb")  # we are actually writing bytes
         f_out.write(xmlstring)
         f_out.close()
