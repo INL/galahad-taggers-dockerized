@@ -30,11 +30,11 @@ def init() -> None:
     """
     global xml_nlp
     xml_nlp = stanza.Pipeline(
-        lang="nl", tokenize_pretokenized=True, processors="tokenize,lemma,pos,depparse"
+        lang="nl", tokenize_pretokenized=True, processors="tokenize,lemma,pos,ner,depparse"
     )
 
     global txt_nlp
-    txt_nlp = stanza.Pipeline(lang="nl", processors="tokenize,lemma,pos,depparse")
+    txt_nlp = stanza.Pipeline(lang="nl", processors="tokenize,lemma,pos,ner,depparse")
 
 
 def process(in_file: str, out_file: str) -> None:
