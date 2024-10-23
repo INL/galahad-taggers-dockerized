@@ -16,6 +16,13 @@ fileTypeOptions:
   # This uses DOM parsing and may be a problem with very large documents (tens/hundreds of MBs)
   resolveNamedEntityReferences: false
 
+# values: saxon, vtd (default)
+processor: saxon
+
+namespaces:
+  'tei': http://www.tei-c.org/ns/1.0
+  'xml': http://www.w3.org/XML/1998/namespace  
+
 # What element starts a new document?
 # (the only absolute XPath; the rest is relative)
 documentPath: //TEI.2
@@ -37,10 +44,12 @@ annotatedFields:
     containerPath: text
 
     # What are our word tags? (relative to container)
-    wordPath: .//w     # (body geldt niet voor OpenSonar, maar ter illustratie)
+    wordPath: .//w|.//pc   # (body geldt niet voor OpenSonar, maar ter illustratie)
+
+    tokenIdPath: "@xml:id" # omdat UD relaties ook naar pc verwijzen
 
     # Punctuation between word tags (relative to container)
-    punctPath: .//text()[not(ancestor::w)]   # = "all text nodes (under containerPath) not inside a <w/> element"
+    #punctPath: .//text()[not(ancestor::w)]   # = "all text nodes (under containerPath) not inside a <w/> element"
 
     # What annotation can each word have? How do we index them?
     # (annotations are also called "(word) properties" in BlackLab)
@@ -276,6 +285,26 @@ annotatedFields:
             separator: "\\|"
             keep: 0
 
+    standoffAnnotations:
+    - path: .//linkGrp[@targFunc='head argument']/link
+      type: relation
+      valuePath: "replace( replace(@ana, 'ud-syn:', ''),'_', ':'  )"   # relation type
+      # Find the relation source and target by parsing the @target attribute
+      # Make sure root relation is recognized as such (has no source in BL)
+      sourcePath: "if (./@ana = 'ud-syn:root') then '' else replace(./@target, '^#(.+) .+$', '$1')"
+
+      targetPath: "replace(./@target, '^.+ #(.+)$', '$1')"
+
+    - path: .//linkGrp[@targFunc='head argument']/link
+      tokenRefPath: "replace(@target,'.* #','')"
+      annotations:
+      - name: rel
+        
+        valuePath: "replace( replace(@ana, 'ud-syn:', ''), '_', ':' )"
+        #      name: rel
+        displayName: "Dependency relation"
+        uiType: select
+
     # XML tags within the content we'd like to index
     # (relative to container)
     inlineTags:
@@ -289,6 +318,9 @@ metadata:
   - forEachPath: bibl/interpGrp
     namePath: "@type"           # interpGrp/@type
     valuePath: "interp/@value"  # interp/@value (TEI P4)
+
+  - name: pid
+    type: untokenized
 
   - name: titleLevel1
     displayName: Title article etc.
@@ -641,6 +673,7 @@ corpusConfig:
       - lemma
       - pos
       - pos_full
+      - rel
     - name: PoS features
       annotations:
         - pos_abbr
