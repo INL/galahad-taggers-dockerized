@@ -81,6 +81,12 @@ annotatedFields:
       forwardIndex: false
       sensitivity: insensitive
 
+    - name: word_ng5
+      valuePath: concat(preceding-sibling::w[4], '_', preceding-sibling::w[3], '_', preceding-sibling::w[2], '_', preceding-sibling::w[1], '_', .)
+      displayName: Pentagram
+      forwardIndex: false
+      sensitivity: insensitive
+
     - name: lemma
       valuePath: "@lemma"
       displayName: Lemma
@@ -101,6 +107,12 @@ annotatedFields:
     - name: lemma_ng4
       valuePath: concat(preceding-sibling::w[3]/@lemma, '_',  preceding-sibling::w[2]/@lemma, '_',  preceding-sibling::w[1]/@lemma, '_', @lemma)
       displayName: Tetragram
+      forwardIndex: false
+      sensitivity: insensitive
+
+    - name: lemma_ng5
+      valuePath: concat(preceding-sibling::w[4]/@lemma, '_', preceding-sibling::w[3]/@lemma, '_', preceding-sibling::w[2]/@lemma, '_', preceding-sibling::w[1]/@lemma, '_', @lemma)
+      displayName: Pentagram
       forwardIndex: false
       sensitivity: insensitive
 
