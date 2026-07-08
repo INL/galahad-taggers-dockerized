@@ -44,7 +44,10 @@ Build the docker images: see `buildall.sh`.
 If you want to connect the taggers to an endpoint outside of a docker network, you can specify a `.env.dev` file like
 
 ```
+# For windows
 CALLBACK_SERVER=http://host.docker.internal:8010/internal/jobs
+# For linux
+# CALLBACK_SERVER=http://172.17.0.1:8010/internal/jobs
 ```
 
 and use it instead of the default .env file like
