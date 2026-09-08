@@ -3,12 +3,12 @@ source .env
 
 # Set the default label
 : ${VERSION:=latest}
+: ${CPU_GPU:=cpu}
 
-echo "Will build taggers with version <$VERSION>. Set VERSION to override this."
+echo "Will build taggers with version <$VERSION> and CPU_GPU <$CPU_GPU>. Set .env to override this."
 
 # Base image
-docker build --build-arg CPU_GPU=cpu -t instituutnederlandsetaal/galahad-taggers:cpu-$VERSION base
-docker build --build-arg CPU_GPU=gpu -t instituutnederlandsetaal/galahad-taggers:gpu-$VERSION base
+docker build -t instituutnederlandsetaal/galahad-taggers:$VERSION base
 # PIE
 # base
 docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=cpu -t instituutnederlandsetaal/galahad-taggers-pie:cpu-$VERSION pie/base
