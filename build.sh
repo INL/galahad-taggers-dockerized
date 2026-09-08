@@ -9,6 +9,7 @@ echo "Will build taggers with version <$VERSION> and CPU_GPU <$CPU_GPU>. Set .en
 
 # Base image
 docker build -t instituutnederlandsetaal/galahad-taggers:$VERSION base
+
 # PIE
 # base
 docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=$CPU_GPU -t instituutnederlandsetaal/galahad-taggers-pie:$CPU_GPU-$VERSION pie/base

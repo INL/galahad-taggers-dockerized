@@ -1,9 +1,11 @@
 ARG VERSION=dev
+
+FROM instituutnederlandsetaal/galahad-taggers:$VERSION
+
 ARG CPU_GPU=cpu
-
-FROM instituutnederlandsetaal/galahad-taggers:$CPU_GPU-$VERSION
-
 ENV CPU_GPU=$CPU_GPU
 
-COPY --link .  ./
-RUN uv --no-cache pip install --system --index-strategy=unsafe-best-match --no-deps --no-cache-dir -r requirements.txt && uv cache clean
+RUN --mount=type=bind,source=requirements/$CPU_GPU.txt,target=/requirements.txt \
+    pip install --no-deps --no-cache-dir -r requirements.txt \
+    --extra-index-url "$([ "$CPU_GPU" = "gpu" ] && echo https://download.pytorch.org/whl/cu126 || echo https://download.pytorch.org/whl/cpu)"
+COPY --link . ./
