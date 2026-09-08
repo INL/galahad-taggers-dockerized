@@ -6,7 +6,8 @@ StatusLoggers live in /status, ProcessStatuses live in /process.
 The only purpose of the ProcessStatus is to store the PID of the process that is currently tagging the file.
 This is used to kill the process if the user wants to cancel the tagging.
 
-The StatusLogger is the main class. It is used to log the status of a file. The status is a json object of the form:
+The StatusLogger is the main class. It is used to log the status of a file.
+The status is a json object of the form:
 {
   message: str,
   pending: bool
@@ -17,20 +18,19 @@ The StatusLogger is the main class. It is used to log the status of a file. The 
 At most one of pending, busy, error, finished is true; or the file was not found.
 """
 
-# Standard library
-from __future__ import annotations
+import fcntl
+import json
+import logging
 import os
 import signal
-import json
 import sys
-import logging
-from typing import Any, Optional
-import pathlib
 import time
-import fcntl
+from contextlib import suppress
+from pathlib import Path
+from typing import Any, override
+from uuid import UUID
 
-# Local
-from shared import STATUS_FOLDER, PROCESS_FOLDER
+from shared import PROCESS_FOLDER, STATUS_FOLDER
 
 log_format = "%(levelname)s %(asctime)s - %(message)s"
 logging.basicConfig(stream=sys.stdout, format=log_format, level=logging.INFO)
@@ -42,42 +42,36 @@ class FileMutex:
     Then opens the original file. When the mutex is released, the lock file is removed in an attempt to clean up.
     """
 
-    def __init__(self, file_path: str, timeout: int = 5):
-        """
-        Create a new mutex for the file_path. timeout is the maximum time to wait for the lock.
-        """
+    def __init__(self, file_path: Path, timeout: int = 5):
+        """Create a new mutex for the file_path. timeout is the maximum time to wait for the lock."""
         self.timeout = timeout
         # Paths
         self.file_path = file_path
-        self._lock_path = file_path + ".lock"
+        self._lock_path = Path(f"{file_path}.lock")
         # Files
         self._lock = None
         self.file = None
 
     def acquire(self, file_mode: str) -> None:
-        """
-        Acquire the lock and open the file in file_mode, once the lock is acquired. Sets self.file.
-        """
+        """Acquire the lock and open the file in file_mode, once the lock is acquired. Sets self.file."""
         start_time = time.time()
         # Try to acquire the lock, if it fails, wait for a bit and try again.
         while True:
             try:
-                self._lock = open(self._lock_path, "a+", encoding="utf-8")
+                self._lock = self._lock_path.open("a+", encoding="utf-8")
                 fcntl.flock(self._lock, fcntl.LOCK_EX)
                 break  # Acquired!
-            except (IOError, OSError):
+            except OSError:
                 if time.time() - start_time > self.timeout:
                     raise TimeoutError(
-                        "Timeout occurred while trying to acquire the lock."
+                        "Timeout occurred while trying to acquire the lock.",
                     )
                 time.sleep(0.1)
         # Open the file after acquiring the lock.
-        self.file = open(self.file_path, file_mode, encoding="utf-8")
+        self.file = self.file_path.open(file_mode, encoding="utf-8")
 
     def release(self) -> None:
-        """
-        Release the lock and close the file. Try to remove the lock file.
-        """
+        """Release the lock and close the file. Try to remove the lock file."""
         if self.file:
             self.file.close()
             self.file = None
@@ -86,40 +80,35 @@ class FileMutex:
             fcntl.flock(self._lock, fcntl.LOCK_UN)
             self._lock.close()
             self._lock = None
-            try:
-                pathlib.Path(self._lock_path).unlink(missing_ok=True)
-            except:
-                pass  # Well, we tried.
+            with suppress(Exception):  # At least try to
+                self._lock_path.unlink(missing_ok=True)
 
 
 class StatusLogger:
-    """
-    A status object for files at the tagger. Keeps a json status that can be sent to the server.
-    """
+    """Status object for files at the tagger. Keeps a json status for the API."""
+
+    def __init__(self, uuid: UUID) -> None:
+        """Create a status object for the give uuid."""
+        self.uuid = uuid
+        self.status_path: Path = STATUS_FOLDER / str(uuid)
 
     @staticmethod
     def _get_all_statusloggers() -> list[StatusLogger]:
         # initializing ProcessStatusses checks for non-existing processes and frees up the tagger
         ProcessStatus.get_all_statusloggers()
-        return list(
-            map(lambda filename: StatusLogger(filename), os.listdir(STATUS_FOLDER))
-        )
+        return [StatusLogger(uuid.name) for uuid in STATUS_FOLDER.iterdir()]
 
     @staticmethod
-    def get_all_statusses() -> dict[str, Any]:
-        ret = {}
-        for sl in StatusLogger._get_all_statusloggers():
-            ret[sl.filename] = sl.get_status()
-        return ret
+    def get_all_statusses() -> dict[UUID, Any]:
+        return {
+            str(sl.uuid): sl.get_status()
+            for sl in StatusLogger._get_all_statusloggers()
+        }
 
     @staticmethod
     def get_all_pending_tasks() -> list[StatusLogger]:
-        """
-        A pending task is waiting to be tagged.
-        """
-        return list(
-            filter(lambda sl: sl.is_pending(), StatusLogger._get_all_statusloggers())
-        )
+        """A pending task is waiting to be tagged."""
+        return [sl for sl in StatusLogger._get_all_statusloggers() if sl.is_pending()]
 
     @staticmethod
     def busy_task_exists() -> bool:
@@ -127,24 +116,17 @@ class StatusLogger:
             sl.get_status()["busy"] for sl in StatusLogger._get_all_statusloggers()
         )
 
-    def __init__(self, filename: str) -> None:
-        self.filename = filename
-        self.status_path: str = os.path.join(STATUS_FOLDER, filename)
-
     def exists(self) -> bool:
-        return os.path.isfile(self.status_path)
+        """Does the underlying file exist."""
+        return self.status_path.is_file()
 
     def is_pending(self) -> bool:
-        """
-        A pending task is waiting to be tagged.
-        """
+        """A pending task is waiting to be tagged."""
         status = self.get_status()
         return status["pending"]
 
     def get_status(self) -> dict[str, Any]:
-        """
-        Retrieve the status object from file storage.
-        """
+        """Retrieve the status object from file storage."""
         if not self.exists():
             return {
                 "message": "File not on server",
@@ -169,28 +151,22 @@ class StatusLogger:
             mutex.release()
 
     def delete_status(self) -> None:
-        """
-        Deletes the file storage associated with this status, as well as the process status if present.
-        """
+        """Deletes the file storage associated with this status, as well as the process status if present."""
         self.delete_status_file()
         # We might have to remove its process status as well.
-        process_status = ProcessStatus(self.filename)
+        process_status = ProcessStatus(self.uuid)
         if process_status.exists():
             process_status.kill()
 
     def delete_status_file(self) -> None:
-        """
-        Delete only the status file. Used by ProcessStatus to avoid recursion.
-        """
+        """Delete only the status file. Used by ProcessStatus to avoid recursion."""
         try:
-            pathlib.Path(self.status_path).unlink(missing_ok=True)
+            self.status_path.unlink(missing_ok=True)
         except:
             raise
 
     def _dump_status(self, status: dict[str, Any]) -> None:
-        """
-        Logs the current status, replacing the previous one.
-        """
+        """Logs the current status, replacing the previous one."""
         try:
             mutex = FileMutex(self.status_path)
             mutex.acquire("w")
@@ -203,7 +179,7 @@ class StatusLogger:
     # Logging functions
 
     def busy(self, message: str) -> None:
-        logging.info(f"{self.filename} - BUSY: {message}")
+        logging.info(f"{self.uuid} - BUSY: {message}")
         status = {
             "message": message,
             "pending": False,
@@ -214,7 +190,7 @@ class StatusLogger:
         self._dump_status(status)
 
     def error(self, message: str) -> None:
-        logging.error(f"{self.filename} - ERROR: {message}")
+        logging.error(f"{self.uuid} - ERROR: {message}")
         status = {
             "message": message,
             "pending": False,
@@ -225,7 +201,7 @@ class StatusLogger:
         self._dump_status(status)
 
     def finished(self, message: str) -> None:
-        logging.info(f"{self.filename} - FINISHED: {message}")
+        logging.info(f"{self.uuid} - FINISHED: {message}")
         status = {
             "message": message,
             "pending": False,
@@ -236,7 +212,7 @@ class StatusLogger:
         self._dump_status(status)
 
     def init(self, message: str) -> None:
-        logging.info(f"{self.filename} - PENDING: {message}")
+        logging.info(f"{self.uuid} - PENDING: {message}")
         status = {
             "message": message,
             "pending": True,
@@ -253,18 +229,10 @@ class ProcessStatus(StatusLogger):
     The status is simply the process ID where the tagger runs.
     """
 
-    @staticmethod
-    def get_all_statusloggers() -> list[ProcessStatus]:
-        return list(
-            map(lambda filename: ProcessStatus(filename), os.listdir(PROCESS_FOLDER))
-        )
-
-    def __init__(self, filename: str, pid: Optional[int] = None) -> None:
-        """
-        When no pid is given, we try to find the pid from the file. Otherwise, we create a new status file.
-        """
-        self.filename = filename
-        self.status_path = os.path.join(PROCESS_FOLDER, filename)
+    def __init__(self, uuid: UUID, pid: int | None = None) -> None:
+        """When no pid is given, we try to find the pid from the file. Otherwise, we create a new status file."""
+        self.uuid = uuid
+        self.status_path = PROCESS_FOLDER / str(uuid)
         if pid is not None:
             self._dump_status({"pid": pid})
         else:
@@ -276,29 +244,28 @@ class ProcessStatus(StatusLogger):
                     # No process with this pid exists.
                     # delete ourselves, otherwise the tagger thinks we are busy.
                     self.delete_status()
-                    StatusLogger(self.filename).init(
-                        "File processing ended. Retry later."
-                    )
+                    StatusLogger(self.uuid).init("File processing ended. Retry later.")
 
-    def get_pid(self) -> Optional[int]:
-        """
-        Process ID of the current thread.
-        """
+    @staticmethod
+    def get_all_statusloggers() -> list[ProcessStatus]:
+        return [ProcessStatus(uuid) for uuid in PROCESS_FOLDER.iterdir()]
+
+    def get_pid(self) -> int | None:
+        """Process ID of the current thread."""
         try:
             return self.get_status()["pid"]
         except:
             return None
 
     def kill(self) -> None:
-        """
-        Kill the thread that is currently tagging the file.
-        """
+        """Kill the thread that is currently tagging the file."""
         pid = self.get_pid()
         if pid is not None:
             print(f"Killing process {pid}")
             os.kill(pid, signal.SIGKILL)
         self.delete_status()
 
+    @override
     def delete_status(self) -> None:
         """
         Called when a processed is killed, or naturally ends.

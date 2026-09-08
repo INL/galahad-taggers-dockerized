@@ -2,69 +2,56 @@
 Web API for the server to talk to the tagger.
 
 The server can upload files, delete files, and get the status of files.
-File are processed automatically once uploaded, with the result being sent back to the callback server.
+File are processed automatically once uploaded.
+If defined, result are sent to the callback server.
 Input files are deleted automatically after being processed.
 
 Deleting files also stops the tagger if that file was being processed.
 (Thus, deleting all input files is equivalent to stopping the tagger.)
 """
 
-# Standard library
-import os
-import subprocess
-import uuid
 import threading
+from pathlib import Path
+from typing import Any
+from uuid import UUID, uuid4
 
-# Third-party
 import bottle
-from bottle import HTTPResponse, request, request, static_file, FileUpload
-from bottle import post, get, delete
-
-# Local
-from shared import OUTPUT_FOLDER, UPLOAD_FOLDER, ERROR_FOLDER
+from bottle import FileUpload, HTTPResponse, delete, get, post, request, static_file
+from process import OUTPUT_EXTENSION
+from shared import ERROR_FOLDER, OUTPUT_FOLDER, UPLOAD_FOLDER
 from statuslogger import StatusLogger
-from process import OUTPUT_EXTENSION, PROCESSING_SPEED
 from tagger_worker import run_background, terminate_pool
 
 app = application = bottle.default_app()
 
 
 @get("/")
-def main():
+def main() -> str:
+    """Simple API documentation."""
     return """
     <p>Any file will be interpreted as plain text.</p>
     <p>[GET /health] health check endpoint</p>
     <p>[GET /input] get an upload form (for convenience)</p>
     <p>[POST /input] upload a file for processing. Returns an identifier for the uploaded file.</p>
-    <p>[DELETE /input/FILE_IDENTIFIER] delete input file with FILE_IDENTIFIER from server.</p>
+    <p>[DELETE /input/uuid] delete input file with uuid from server.</p>
     <p>[GET /status] get a dict with the status of files</p>
-    <p>[GET /status/FILE_IDENTIFIER] get status for file with FILE_IDENTIFIER</p>
+    <p>[GET /status/uuid] get status for file with uuid</p>
     <p>[GET /error] get a list files with errors</p>
-    <p>[GET /error/FILE_IDENTIFIER] download file with FILE_IDENTIFIER from server</p>
+    <p>[GET /error/uuid] download file with uuid from server</p>
     <p>[GET /output] get a list of processed files</p>
-    <p>[GET /output/FILE_IDENTIFIER] download processed file FILE_IDENTIFIER</p>
-    <p>[DELETE /output/FILE_IDENTIFIER] delete file with FILE_IDENTIFIER from server</p>
+    <p>[GET /output/uuid] download processed file uuid</p>
+    <p>[DELETE /output/uuid] delete file with uuid from server</p>
     """
 
 
 @get("/health")
 def health():
-    # du -sb includes the size of the dir, probably 4096. Which is fine, most files will be quite a bit larger.
-    # And also, it sort of accounts for the delay of starting a thread
-    queue_size = int(
-        subprocess.check_output(["du", "-sb", "/input"]).split()[0].decode("utf-8")
-    )
-    return {
-        "healthy": True,
-        "queueSizeAtTagger": queue_size,  # bytes, but mostly ascii so 1 byte is 1 char.
-        "processingSpeed": PROCESSING_SPEED,  # char/s
-        "message": "I am healthy.",
-    }
+    return {"healthy": True, "message": "I am healthy."}
 
 
 @get("/input")
-# upload form for convenience
-def handle_file():
+def handle_file() -> str:
+    """Render the file upload form."""
     return """
     <!doctype html>
     <title>Upload new File</title>
@@ -77,99 +64,101 @@ def handle_file():
 
 
 @post("/input")
-def post_input():
+def post_input() -> HTTPResponse:
+    """Upload file for processing."""
     # check if the post request has the file part
     if "file" not in request.files:
         return HTTPResponse("No file part", 400)
     file: FileUpload = request.files["file"]
     # If the user does not select a file, the browser submits an
     # empty file without a filename.
-    if file.filename == "":
+    if not file.filename:
         return HTTPResponse("No selected file", 400)
     if file:
-        id = str(uuid.uuid4())
-        file_dest = os.path.join(UPLOAD_FOLDER, id)
-        file.save(file_dest)
-        file_exists = os.path.isfile(file_dest)
-        if not file_exists:
+        uuid = str(uuid4())
+        file_dest = UPLOAD_FOLDER / uuid
+        file.save(str(file_dest))  # bottle needs a string
+        if not file_dest.is_file():
             return HTTPResponse("File could not be saved. Please try again.", 500)
         # register the file
-        sl = StatusLogger(id)
+        sl = StatusLogger(uuid)
         sl.init("File arrived")
-        return id
-    else:
-        return HTTPResponse("File is not defined", 400)
+        return HTTPResponse(uuid, 202)
+    return HTTPResponse("File is not defined", 400)
 
 
-@delete("/input/<id>")
-def delete_input(id: str):
-    path = os.path.join(UPLOAD_FOLDER, id)
-    if os.path.isfile(path):
-        sl = StatusLogger(id)
+@delete("/input/<uuid>")
+def delete_input(uuid: UUID) -> HTTPResponse:
+    """Delete input file, its associated status, and stop processing if running."""
+    file = UPLOAD_FOLDER / str(uuid)
+    if file.is_file():
+        sl = StatusLogger(uuid)
         sl.delete_status()
-        os.remove(path)
-        return HTTPResponse("File " + id + " deleted", 200)
-    else:
-        return HTTPResponse("File is not defined", 400)
+        file.unlink(missing_ok=True)
+        return HTTPResponse(f"File {uuid} deleted", 200)
+    return HTTPResponse("File not found", 400)
 
 
 @get("/status")
-def get_status():
+def get_status() -> dict[str, Any]:
+    """Get all statusses."""
     return StatusLogger.get_all_statusses()
 
 
-@get("/status/<id>")
-def get_status_for(id: str):
-    sl = StatusLogger(id)
-    return sl.get_status()
+@get("/status/<uuid>")
+def get_status_for(uuid: UUID) -> dict[str, Any]:
+    """Get status of uuid."""
+    return StatusLogger(uuid).get_status()
 
 
 @get("/error")
-def get_error_files():
-    return {"error_files": os.listdir(ERROR_FOLDER)}
+def get_error_files() -> dict[str, list[Path]]:
+    """Get all errors."""
+    return {"error_files": list(ERROR_FOLDER.iterdir())}
 
 
-@get("/error/<id>")
-def get_error_file(id: str):
-    filename = id
-    return static_file(filename, ERROR_FOLDER)
-    # what to do if the file doesn't exists?
+@get("/error/<uuid>")
+def get_error_file(uuid: UUID) -> HTTPResponse:
+    """Get error for uuid."""
+    file = UPLOAD_FOLDER / str(uuid)
+    if file.is_file():
+        return static_file(str(uuid), ERROR_FOLDER)
+    return HTTPResponse("File not found", 404)
 
 
 @get("/output")
-def get_processed_files():
-    return {"processed_files": os.listdir(OUTPUT_FOLDER)}
+def get_processed_files() -> dict[str, list[str]]:
+    """Return all finished uuids."""
+    return {"processed_files": [file.stem for file in OUTPUT_FOLDER.iterdir()]}
 
 
-@get("/output/<id>")
-def get_processed_file(id: str):
-    filename = id + OUTPUT_EXTENSION
-    return static_file(filename, OUTPUT_FOLDER)
-    # what to do if the file doesn't exists?
+@get("/output/<uuid>")
+def get_processed_file(uuid: str) -> HTTPResponse:
+    """Get output file."""
+    file = Path(uuid + OUTPUT_EXTENSION)
+    if (OUTPUT_FOLDER / file).is_file():
+        return static_file(str(file), OUTPUT_FOLDER)
+    return HTTPResponse("File not found", 404)
 
 
-@delete("/output/<id>")
-def delete_file(id: str):
-    """
-    Delete the file, its associated status, and stop the processing if it is running.
-    """
-    path = os.path.join(OUTPUT_FOLDER, id + OUTPUT_EXTENSION)
+@delete("/output/<uuid>")
+def delete_file(uuid: str) -> HTTPResponse:
+    """Delete file, its status, and stop processing if running."""
+    file = OUTPUT_FOLDER / (uuid + OUTPUT_EXTENSION)
 
-    # remove the status
-    sl = StatusLogger(id)
-    sl.delete_status()
-
-    # remove the file
-    if os.path.isfile(path):
-        os.remove(path)
-        return HTTPResponse("File " + id + " deleted", 200)
+    if file.is_file():
+        # remove the file
+        file.unlink()
+        # remove status and stop processing
+        sl = StatusLogger(uuid)
+        sl.delete_status()
+        return HTTPResponse("File " + uuid + " deleted", 200)
+    return HTTPResponse("File not found", 404)
 
 
 @post("/terminate")
-def terminate():
-    """
-    Terminate the worker pool immediately, freeing RAM (& VRAM).
-    """
+def terminate() -> HTTPResponse:
+    """Terminate the worker pool immediately, freeing RAM (& VRAM)."""
     terminate_pool()
     return HTTPResponse("Terminated the worker pool", 200)
 

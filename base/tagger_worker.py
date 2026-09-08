@@ -10,29 +10,25 @@ Additonally the taggers need to be initialized only once (and in the same thread
 so that can be done at pool initialization.
 """
 
-# Standard library
-import errno
+import json
+import multiprocessing as mp
 import os
 import time
-import multiprocessing as mp
-from multiprocessing.pool import Pool
-from typing import Optional
-import subprocess
-import requests
 import traceback
-import pathlib
+from multiprocessing.pool import Pool
+from pathlib import Path
+from urllib.request import Request, urlopen
+from uuid import UUID, uuid4
 
-# Local
 import process
-from timeout import timeout
-from shared import OUTPUT_FOLDER, UPLOAD_FOLDER, ERROR_FOLDER
-from statuslogger import StatusLogger, ProcessStatus
-from process import PROCESSING_SPEED
+from process import OUTPUT_EXTENSION
+from shared import OUTPUT_FOLDER, UPLOAD_FOLDER
+from statuslogger import ProcessStatus, StatusLogger
 
 CALLBACK_SERVER: str = os.getenv("CALLBACK_SERVER") or ""
 NUM_WORKERS = int(os.getenv("NUM_WORKERS") or 1)
 # Needs to be defined as a reference object, e.g. dict.
-_global = {"pool": None}
+_global: dict[str, Pool] = {"pool": None}
 
 
 def run_pending_tasks() -> None:
@@ -41,7 +37,7 @@ def run_pending_tasks() -> None:
     If there is no pool running, start a new pool.
     """
     # One task at a time.
-    tasks_in_queue = _global["pool"]._taskqueue.qsize()
+    tasks_in_queue: int = _global["pool"]._taskqueue.qsize()
     if tasks_in_queue > 0:
         return
 
@@ -50,18 +46,17 @@ def run_pending_tasks() -> None:
     for sl in pending_tasks:
         # A task could have been cancelled in the meantime.
         # In which case the pending_tasks list is outdated. (It will refresh, though.)
-        if sl.exists():
-            if sl.get_status()["busy"] is False:
-                sl.busy("Parsing file")  # Sets busy true
-                # Extra None check for typing
-                if (not is_pool_running()) or _global["pool"] is None:
-                    # Spawn pool if not running
-                    _global["pool"] = mp.Pool(processes=NUM_WORKERS)
-                # Perform task at running pool
-                _global["pool"].apply_async(process_file, args=(sl.filename,))
+        if sl.exists() and sl.get_status()["busy"] is False:
+            sl.busy("Processing file")  # Sets busy true
+            # Extra None check for typing
+            if (not is_pool_running()) or _global["pool"] is None:
+                # Spawn pool if not running
+                _global["pool"] = mp.Pool(processes=NUM_WORKERS)
+            # Perform task at running pool
+            _global["pool"].apply_async(process_file, args=(sl.uuid,))
 
 
-def process_file(filename: str):
+def process_file(uuid: UUID) -> None:
     """
     Process a file:
     Create a ProcessStatus, set the StatusLogger to busy, send the file to the tagger with a timeout,
@@ -69,124 +64,100 @@ def process_file(filename: str):
     This function runs in a separate process.
     """
     # Register the process
-    ps = ProcessStatus(filename, os.getpid())
-    sl = StatusLogger(filename)
+    ps = ProcessStatus(uuid, os.getpid())
+    sl = StatusLogger(uuid)
 
     # Set up paths
-    in_path = os.path.abspath(os.path.join(UPLOAD_FOLDER, filename))
-    out_path = os.path.abspath(
-        os.path.join(OUTPUT_FOLDER, filename + process.OUTPUT_EXTENSION)
-    )
-    error_path = os.path.abspath(os.path.join(ERROR_FOLDER, filename))
+    in_path = UPLOAD_FOLDER / str(uuid)
+    out_path = OUTPUT_FOLDER / (str(uuid) + OUTPUT_EXTENSION)
 
     try:
-        tag(filename, in_path, out_path, sl, ps)
+        tag(uuid, in_path, out_path, sl, ps)
     except Exception as e:
         # Process failed, free up the pid
         ps.delete_status()
         sl.error(f"An exception occurred: {e}")
         print(traceback.format_exc())
-        # copy input file to error folder if it exists
-        if os.path.isfile(in_path):
-            os.rename(in_path, error_path)
-        if CALLBACK_SERVER != "":
-            sl.error("Sending error to callback server")
-            send_error_to_callback_server(filename, out_path, message=str(e))
+        # delete inputfile
+        in_path.unlink(missing_ok=True)
+        if CALLBACK_SERVER:
+            send_error_to_callback_server(uuid, message=str(e))
 
 
 def tag(
-    filename: str, in_path: str, out_path: str, sl: StatusLogger, ps: ProcessStatus
+    uuid: UUID,
+    in_path: Path,
+    out_path: Path,
+    sl: StatusLogger,
+    ps: ProcessStatus,
 ) -> None:
     """
     Attempt to tag the file by the tagger with a timeout.
     Send the result to the server, whether successful or not.
     Also appropriately logs the status.
     """
-    # 300s = 5min fixed time
-    # plus
-    # bytes * speed variable time
-    in_bytes_size = None
-    while in_bytes_size is None:
-        if os.path.isfile(in_path):
-            try:
-                in_bytes_size = int(
-                    subprocess.check_output(["du", "-sb", in_path])
-                    .split()[0]
-                    .decode("utf-8")
-                )
-            except Exception as e:
-                print(f"Error getting file size: {e}")
-                time.sleep(1)
-        else:
-            raise FileNotFoundError(f"File {in_path} not found")
-
-    time_out = 300 + in_bytes_size + PROCESSING_SPEED
-    sl.busy("Will process with a timeout after " + str(time_out) + " seconds")
-
-    # Runs the respective tagger software synchronously.
-    @timeout(time_out, os.strerror(errno.ETIME))
-    def doTagging():
-        process.process(in_path, out_path)
-
-    doTagging()
+    process.process(in_path, out_path)
 
     # Done processing
     ps.delete_status()  # Frees up the tagger
-    sl.finished("Removing input file")
-    pathlib.Path(in_path).unlink(missing_ok=True)
+    in_path.unlink(missing_ok=True)
 
-    sl.finished(
-        "Finished processing %s, result has size %d"
-        % (filename, os.path.getsize(out_path))
-    )
-    if CALLBACK_SERVER != "":
-        sl.finished("Sending output to callback server")
-        send_result_to_callback_server(filename, out_path)
-        sl.finished("Finished")
+    sl.finished(f"result has size {out_path.stat().st_size}")
+    if CALLBACK_SERVER:
+        send_result_to_callback_server(uuid, out_path)
         sl.delete_status()
 
 
-def keep_or_delete_file(response: requests.Response, out_path: str) -> None:
-    """
-    Keep or delete the file based on the server response.
-    """
-    if response.content.decode("utf-8") == "KEEP":
-        print(f"I will keep the file: {out_path}")
-    elif response.content.decode("utf-8") == "DELETE":
-        print(f"I will delete the file: {out_path}")
-        os.remove(out_path)
-    else:
-        print(f"Reply unintelligeble, will delete anyway {out_path}")
-        os.remove(out_path)
-
-
-def send_result_to_callback_server(filename: str, out_path: str) -> None:
-    """
-    Send the result to the callback server and keep or delete the file based on the server response.
-    """
-    file = open(out_path, "rb")
+def send_result_to_callback_server(uuid: UUID, file: Path) -> None:
+    """Send the result to the callback server."""
     url = CALLBACK_SERVER + "/result"
-    payload = {"file_id": filename}
-    files = {"file": file}
-    r = requests.post(url, files=files, data=payload)
-    keep_or_delete_file(r, out_path)
+    boundary = uuid4().hex
+    delimiter = ("--" + boundary).encode()
+    file_data = file.read_bytes()
+    # output has been read, can be deleted
+    file.unlink(missing_ok=True)
+    body = b"\r\n".join(
+        [
+            delimiter,
+            b'Content-Disposition: form-data; name="file_id"',
+            b"",
+            str(uuid).encode(),
+            delimiter,
+            b'Content-Disposition: form-data; name="file"; uuid="'
+            + file.name.encode()
+            + b'"',
+            b"Content-Type: application/octet-stream",
+            b"",
+            file_data,
+            delimiter + b"--",
+            b"",
+        ],
+    )
+    request = Request(
+        url,
+        data=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+        method="POST",
+    )
+    urlopen(request)
 
 
-def send_error_to_callback_server(filename: str, out_path: str, message: str) -> None:
-    """
-    Send the error to the callback server and keep or delete the file based on the server response.
-    """
+def send_error_to_callback_server(uuid: str, message: str) -> None:
+    """Send the error to the callback server."""
     url = CALLBACK_SERVER + "/error"
-    payload = {"file_id": filename}
-    json_data = {"file_id": filename, "message": message}
-    r = requests.post(url, json=json_data, params=payload)
-    keep_or_delete_file(r, out_path)
+    json_data = {"file_id": uuid, "message": message}
+    body = json.dumps(json_data).encode("utf-8")
+    request = Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    urlopen(request)
 
 
 def is_pool_running() -> bool:
-    """
-    Check if the pool is running by trying to execute a dummy function.
-    """
+    """Check if the pool is running by trying to execute a dummy function."""
     if _global["pool"] is None:
         return False
     try:
@@ -198,13 +169,12 @@ def is_pool_running() -> bool:
 
 
 def terminate_pool() -> None:
-    """
-    Terminate the pool if it is running.
-    """
+    """Terminate the pool if it is running."""
     _global["pool"].terminate()
 
 
-def run_background():
+def run_background() -> None:
+    """Background loop."""
     # Can't use fork with the gpu.
     mp.set_start_method("spawn", force=True)
     _global["pool"] = mp.Pool(processes=NUM_WORKERS)
