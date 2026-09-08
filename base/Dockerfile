@@ -9,4 +9,8 @@ RUN pip install --no-deps --no-cache-dir uv && uv --no-cache pip install --syste
 
 EXPOSE 8080
 
+RUN --mount=type=bind,source=requirements.txt,target=requirements.txt \
+    pip install --no-deps --no-cache -r requirements.txt
+COPY --link *.py ./
+
 CMD ["python", "-u", "webservice.py"]
