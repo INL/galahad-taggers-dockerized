@@ -11,28 +11,21 @@ echo "Will build taggers with version <$VERSION> and CPU_GPU <$CPU_GPU>. Set .en
 docker build -t instituutnederlandsetaal/galahad-taggers:$VERSION base
 # PIE
 # base
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=cpu -t instituutnederlandsetaal/galahad-taggers-pie:cpu-$VERSION pie/base
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=gpu -t instituutnederlandsetaal/galahad-taggers-pie:gpu-$VERSION pie/base
+docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=$CPU_GPU -t instituutnederlandsetaal/galahad-taggers-pie:$CPU_GPU-$VERSION pie/base
 # tdn-all
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=cpu -t instituutnederlandsetaal/galahad-taggers-pie-tdn-all:cpu-$VERSION pie/TDN-ALL
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=gpu -t instituutnederlandsetaal/galahad-taggers-pie-tdn-all:gpu-$VERSION pie/TDN-ALL
+docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=$CPU_GPU -t instituutnederlandsetaal/galahad-taggers-pie-tdn-all:$CPU_GPU-$VERSION pie/TDN-ALL
 # tdn-1200-1600
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=cpu -t instituutnederlandsetaal/galahad-taggers-pie-tdn-1200-1600:cpu-$VERSION pie/TDN-1200-1600
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=gpu -t instituutnederlandsetaal/galahad-taggers-pie-tdn-1200-1600:gpu-$VERSION pie/TDN-1200-1600
+docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=$CPU_GPU -t instituutnederlandsetaal/galahad-taggers-pie-tdn-1200-1600:$CPU_GPU-$VERSION pie/TDN-1200-1600
 # tdn-1600-1900
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=cpu -t instituutnederlandsetaal/galahad-taggers-pie-tdn-1600-1900:cpu-$VERSION pie/TDN-1600-1900
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=gpu -t instituutnederlandsetaal/galahad-taggers-pie-tdn-1600-1900:gpu-$VERSION pie/TDN-1600-1900
+docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=$CPU_GPU -t instituutnederlandsetaal/galahad-taggers-pie-tdn-1600-1900:$CPU_GPU-$VERSION pie/TDN-1600-1900
 
 # UD-parsers
 # flair
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=cpu -t instituutnederlandsetaal/galahad-taggers-flair:cpu-$VERSION flair
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=gpu -t instituutnederlandsetaal/galahad-taggers-flair:gpu-$VERSION flair
+docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=$CPU_GPU -t instituutnederlandsetaal/galahad-taggers-flair:$CPU_GPU-$VERSION flair
 # # spacy
-docker build --build-arg VERSION=$VERSION --build-arg SPACY_MODEL=nl_core_news_lg --build-arg CPU_GPU=cpu -t instituutnederlandsetaal/galahad-taggers-spacy:cpu-$VERSION spacy
-docker build --build-arg VERSION=$VERSION --build-arg SPACY_MODEL=nl_core_news_lg --build-arg CPU_GPU=gpu -t instituutnederlandsetaal/galahad-taggers-spacy:gpu-$VERSION spacy
+docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=$CPU_GPU --build-arg SPACY_MODEL=nl_core_news_lg -t instituutnederlandsetaal/galahad-taggers-spacy:$CPU_GPU-$VERSION spacy
 # stanza
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=cpu -t instituutnederlandsetaal/galahad-taggers-stanza:cpu-$VERSION stanza
-docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=gpu -t instituutnederlandsetaal/galahad-taggers-stanza:gpu-$VERSION stanza
+docker build --build-arg VERSION=$VERSION --build-arg CPU_GPU=$CPU_GPU -t instituutnederlandsetaal/galahad-taggers-stanza:$CPU_GPU-$VERSION stanza
 # udpipe
 # docker build --build-arg VERSION=$VERSION -t instituutnederlandsetaal/galahad-taggers-udpipe:$VERSION udpipe
 
