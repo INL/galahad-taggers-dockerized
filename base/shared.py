@@ -1,12 +1,12 @@
-# Contains values used by both tagger worker and webservice
+"""Contains values used by both tagger worker and webservice."""
 
-import os
+from pathlib import Path
 
-UPLOAD_FOLDER = "input"
-STATUS_FOLDER = "status"
-PROCESS_FOLDER = "process"
-OUTPUT_FOLDER = "output"
-ERROR_FOLDER = "error"
+UPLOAD_FOLDER = Path("input")
+STATUS_FOLDER = Path("status")
+PROCESS_FOLDER = Path("process")
+OUTPUT_FOLDER = Path("output")
+ERROR_FOLDER = Path("error")
 
 for folder in [
     UPLOAD_FOLDER,
@@ -15,11 +15,4 @@ for folder in [
     OUTPUT_FOLDER,
     ERROR_FOLDER,
 ]:
-    os.makedirs(folder, exist_ok=True)
-
-TEXT_EXTENSIONS = {"txt"}
-ALLOWED_EXTENSIONS = TEXT_EXTENSIONS
-
-
-def file_extension(filename: str) -> str:
-    return filename.rsplit(".", 1)[1].lower()
+    folder.mkdir(exist_ok=True, parents=True)
