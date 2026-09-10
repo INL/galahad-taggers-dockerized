@@ -110,7 +110,7 @@ def tag(
 
 def send_result_to_callback_server(uuid: UUID, file: Path) -> None:
     """Send the result to the callback server."""
-    url = CALLBACK_SERVER + "/result"
+    url = CALLBACK_SERVER + f"/result?file_id={uuid}"
     boundary = uuid4().hex
     delimiter = ("--" + boundary).encode()
     file_data = file.read_bytes()
@@ -119,14 +119,10 @@ def send_result_to_callback_server(uuid: UUID, file: Path) -> None:
     body = b"\r\n".join(
         [
             delimiter,
-            b'Content-Disposition: form-data; name="file_id"',
-            b"",
-            str(uuid).encode(),
-            delimiter,
-            b'Content-Disposition: form-data; name="file"; uuid="'
+            b'Content-Disposition: form-data; name="file"; filename="'
             + file.name.encode()
             + b'"',
-            b"Content-Type: application/octet-stream",
+            b"Content-Type: text/plain",
             b"",
             file_data,
             delimiter + b"--",
