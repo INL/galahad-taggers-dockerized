@@ -1,4 +1,4 @@
-FROM python:3.14.7-slim-trixie
+FROM python:3.12.14-slim-trixie
 
 EXPOSE 8080
 

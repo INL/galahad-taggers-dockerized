@@ -93,7 +93,7 @@ class StatusLogger:
         self.status_path: Path = STATUS_FOLDER / str(uuid)
 
     @staticmethod
-    def _get_all_statusloggers() -> list[StatusLogger]:
+    def _get_all_statusloggers() -> list["StatusLogger"]:
         # initializing ProcessStatusses checks for non-existing processes and frees up the tagger
         ProcessStatus.get_all_statusloggers()
         return [StatusLogger(uuid.name) for uuid in STATUS_FOLDER.iterdir()]
@@ -106,7 +106,7 @@ class StatusLogger:
         }
 
     @staticmethod
-    def get_all_pending_tasks() -> list[StatusLogger]:
+    def get_all_pending_tasks() -> list["StatusLogger"]:
         """A pending task is waiting to be tagged."""
         return [sl for sl in StatusLogger._get_all_statusloggers() if sl.is_pending()]
 
@@ -247,7 +247,7 @@ class ProcessStatus(StatusLogger):
                     StatusLogger(self.uuid).init("File processing ended. Retry later.")
 
     @staticmethod
-    def get_all_statusloggers() -> list[ProcessStatus]:
+    def get_all_statusloggers() -> list["ProcessStatus"]:
         return [ProcessStatus(uuid) for uuid in PROCESS_FOLDER.iterdir()]
 
     def get_pid(self) -> int | None:
