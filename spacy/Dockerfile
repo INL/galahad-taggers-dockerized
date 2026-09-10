@@ -1,11 +1,13 @@
 ARG VERSION=dev
-ARG CPU_GPU=cpu
 
-FROM instituutnederlandsetaal/galahad-taggers:$CPU_GPU-$VERSION
+FROM instituutnederlandsetaal/galahad-taggers:$VERSION
+
+ARG CPU_GPU=cpu
+ENV CPU_GPU=$CPU_GPU
 
 ARG SPACY_MODEL
 ENV SPACY_MODEL=$SPACY_MODEL
-ENV CPU_GPU=$CPU_GPU
 
-COPY --link process.py conllu_tei_helper.py requirements/$CPU_GPU.txt ./
-RUN apt update && apt install libgomp1 -y && uv pip install --system --index-strategy=unsafe-best-match --no-deps --no-cache-dir -r $CPU_GPU.txt && python3 -m spacy download $SPACY_MODEL
+COPY --link process.py conllu_tei_helper.py ./
+RUN --mount=type=bind,source=requirements/$CPU_GPU.txt,target=/requirements.txt \
+    apt update && apt install libgomp1 -y && pip install --no-deps --no-cache-dir -r requirements.txt && python3 -m spacy download $SPACY_MODEL

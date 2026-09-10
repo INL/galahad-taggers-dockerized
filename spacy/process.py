@@ -1,17 +1,17 @@
 # standard
 import os
-import xml.etree.ElementTree as ET
-import time
+import pathlib
 import re
-
-# third-party
-import spacy
-from spacy.language import Language
-from spacy.tokens import Doc
-from spacy_conll import init_parser
+import time
+import xml.etree.ElementTree as ET
 
 # local
 from conllu_tei_helper import parse_tei
+from spacy.language import Language
+from spacy.tokens import Doc
+
+# third-party
+import spacy
 
 # The extension of output files produced by the tagger.
 OUTPUT_EXTENSION = ".conllu"
@@ -19,7 +19,7 @@ OUTPUT_EXTENSION = ".conllu"
 # Expected throughput in chars per sec.
 # The timeout and expected job duration are based on this,
 # so set it to a lower value to increase the timeout.
-PROCESSING_SPEED = 370  # todo: measure this!
+PROCESSING_SPEED = 370  # TODO: measure this!
 
 nlp = None
 
@@ -45,7 +45,9 @@ def init() -> None:
     global nlp
     nlp = spacy.load(os.environ["SPACY_MODEL"])
     nlp.add_pipe(factory_name="prevent-sbd", before="parser")
-    nlp.add_pipe("conll_formatter", last=True, config={"disable_pandas": True})
+    nlp.add_pipe(
+        "conll_formatter", last=True, config={"disable_pandas": True, "field_names": {}}
+    )
 
     duration = time.time() - start_time
     print(f"Loaded pipeline in {duration:.2f}s: {nlp.pipe_names}")
@@ -57,8 +59,8 @@ def process(in_file: str, out_file: str) -> None:
     """
     if nlp is None:
         init()
-    with open(out_file, "w+", encoding="utf-8") as f_out:
-        with open(in_file, "r", encoding="utf-8") as f_in:
+    with pathlib.Path(out_file).open("w+", encoding="utf-8") as f_out:
+        with pathlib.Path(in_file).open(encoding="utf-8") as f_in:
             is_xml = is_file_xml(in_file)
             # only non empty lines if not xml
             doc = (
@@ -121,12 +123,12 @@ def to_conllu(token):
     return (
         str(token.i - sent_start + 1),
         token.text,
-        token.lemma_ if token.lemma_ else "_",
-        token.pos_ if token.pos_ else "_",
-        token.tag_ if token.tag_ else "_",
+        token.lemma_ or "_",
+        token.pos_ or "_",
+        token.tag_ or "_",
         str(token.morph) if token.has_morph and str(token.morph) else "_",
         str(head_idx),
-        token.dep_ if token.dep_ else "_",
+        token.dep_ or "_",
         token._.conll_deps_graphs_field,
         token._.conll_misc_field,
     )
